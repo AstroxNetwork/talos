@@ -1,0 +1,12 @@
+[
+  {
+    "category": "dapp",
+    "package": "talos",
+    "bin_name": "talos",
+    "config": "./configs/talos.json",
+    "post_install_sequence": 100,
+    "no_deploy": false,
+    "single_mod": true,
+    "actor_entry": true
+  }
+]
