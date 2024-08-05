@@ -1,4 +1,4 @@
-# ego-rust-template
+# Talos
 
 This Template is created for EGO projects
 
