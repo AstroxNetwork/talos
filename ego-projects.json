@@ -8,5 +8,35 @@
     "no_deploy": false,
     "single_mod": true,
     "actor_entry": true
+  },
+  {
+    "category": "dapp",
+    "package": "talos_staking_wallet",
+    "bin_name": "talos_staking_wallet",
+    "config": "./configs/talos_staking_wallet.json",
+    "post_install_sequence": 100,
+    "no_deploy": true,
+    "single_mod": true,
+    "actor_entry": true
+  },
+  {
+    "category": "dapp",
+    "package": "talos_oracles",
+    "bin_name": "talos_oracles",
+    "config": "./configs/talos_oracles.json",
+    "post_install_sequence": 100,
+    "no_deploy": true,
+    "single_mod": true,
+    "actor_entry": true
+  },
+  {
+    "category": "dapp",
+    "package": "talos_token",
+    "bin_name": "talos_token",
+    "config": "./configs/talos_token.json",
+    "post_install_sequence": 100,
+    "no_deploy": true,
+    "single_mod": true,
+    "actor_entry": true
   }
 ]
