@@ -8,6 +8,7 @@ members = [
     "dapp/talos_token/mod",
     "dapp/talos_oracles/actor",
     "dapp/talos_oracles/mod",
+    "libs/ic_tss",
 ]
 
 [workspace.dependencies]
