@@ -12,24 +12,29 @@ export interface BtcPubkey {
   'xonly' : Array<number>,
   'pubkey' : Array<number>,
 }
+export interface CreateStakeRunesReq {
+  'lock_time' : number,
+  'amount' : bigint,
+  'rune_id' : string,
+}
 export interface LogEntry { 'ts' : bigint, 'msg' : string, 'kind' : string }
 export type Result = { 'Ok' : null } |
   { 'Err' : string };
-export type Result_1 = { 'Ok' : TalosUser } |
+export type Result_1 = { 'Ok' : string } |
   { 'Err' : string };
-export type Result_2 = { 'Ok' : string } |
+export type Result_2 = { 'Ok' : TalosUser } |
   { 'Err' : string };
-export type Result_3 = { 'Ok' : AppInfo } |
+export type Result_3 = { 'Ok' : Array<UserStakedRunes> } |
   { 'Err' : string };
-export type Result_4 = { 'Ok' : Array<[string, Array<Principal>]> } |
+export type Result_4 = { 'Ok' : AppInfo } |
   { 'Err' : string };
-export type Result_5 = { 'Ok' : boolean } |
+export type Result_5 = { 'Ok' : Array<[string, Array<Principal>]> } |
   { 'Err' : string };
-export type Result_6 = { 'Ok' : Array<LogEntry> } |
+export type Result_6 = { 'Ok' : boolean } |
   { 'Err' : string };
-export type Result_7 = { 'Ok' : [] | [Array<[Principal, string]>] } |
+export type Result_7 = { 'Ok' : Array<LogEntry> } |
   { 'Err' : string };
-export type Result_8 = { 'Ok' : Array<UserStakedRunes> } |
+export type Result_8 = { 'Ok' : [] | [Array<[Principal, string]>] } |
   { 'Err' : string };
 export interface RuneId { 'tx' : number, 'block' : bigint }
 export type RunesStatus = { 'Inactive' : null } |
@@ -49,7 +54,7 @@ export type StakeStatus = { 'Locking' : null } |
 export interface TalosRunes {
   'runes_status' : RunesStatus,
   'min_stake' : bigint,
-  'rune_id' : RuneId,
+  'rune_id' : string,
 }
 export interface TalosUser {
   'status' : UserStatus,
@@ -62,7 +67,7 @@ export interface UserStakedRunes {
   'stake_payload' : StakePayload,
   'stake_amount' : bigint,
   'btc_address' : string,
-  'runes_id' : RuneId,
+  'runes_id' : string,
 }
 export type UserStatus = { 'Blocked' : null } |
   { 'Normal' : null };
@@ -72,21 +77,33 @@ export interface Version {
   'patch' : number,
 }
 export interface _SERVICE {
-  'add_rune' : ActorMethod<[TalosRunes], Result>,
+  'admin_add_runes' : ActorMethod<[TalosRunes], Result>,
   'admin_block_user' : ActorMethod<[Principal], Result>,
+  'admin_create_runes_order' : ActorMethod<
+    [Principal, CreateStakeRunesReq],
+    Result_1,
+  >,
   'admin_get_all_users' : ActorMethod<[], Array<TalosUser>>,
-  'admin_get_user' : ActorMethod<[Principal], Result_1>,
-  'admin_get_user_by_btc_address' : ActorMethod<[string], Result_1>,
-  'create_runes_order' : ActorMethod<[RuneId, number, bigint], Result_2>,
-  'ego_app_info_get' : ActorMethod<[], Result_3>,
+  'admin_get_user' : ActorMethod<[Principal], Result_2>,
+  'admin_get_user_all_runes_orders' : ActorMethod<
+    [[] | [Principal], [] | [string]],
+    Result_3,
+  >,
+  'admin_get_user_by_btc_address' : ActorMethod<[string], Result_2>,
+  'admin_remove_order' : ActorMethod<[string], Result>,
+  'admin_remove_runes' : ActorMethod<[string], Result>,
+  'admin_remove_user' : ActorMethod<[Principal], Result>,
+  'admin_remove_user_by_address' : ActorMethod<[string], Result>,
+  'create_runes_order' : ActorMethod<[CreateStakeRunesReq], Result_1>,
+  'ego_app_info_get' : ActorMethod<[], Result_4>,
   'ego_app_info_update' : ActorMethod<
     [[] | [Principal], string, Version],
     undefined,
   >,
-  'ego_app_version_check' : ActorMethod<[], Result_3>,
+  'ego_app_version_check' : ActorMethod<[], Result_4>,
   'ego_canister_add' : ActorMethod<[string, Principal], Result>,
   'ego_canister_delete' : ActorMethod<[], Result>,
-  'ego_canister_list' : ActorMethod<[], Result_4>,
+  'ego_canister_list' : ActorMethod<[], Result_5>,
   'ego_canister_remove' : ActorMethod<[string, Principal], Result>,
   'ego_canister_track' : ActorMethod<[], Result>,
   'ego_canister_untrack' : ActorMethod<[], Result>,
@@ -94,26 +111,27 @@ export interface _SERVICE {
   'ego_controller_add' : ActorMethod<[Principal], Result>,
   'ego_controller_remove' : ActorMethod<[Principal], Result>,
   'ego_controller_set' : ActorMethod<[Array<Principal>], Result>,
-  'ego_is_op' : ActorMethod<[], Result_5>,
-  'ego_is_owner' : ActorMethod<[], Result_5>,
-  'ego_is_user' : ActorMethod<[], Result_5>,
-  'ego_log_list' : ActorMethod<[bigint], Result_6>,
+  'ego_is_op' : ActorMethod<[], Result_6>,
+  'ego_is_owner' : ActorMethod<[], Result_6>,
+  'ego_is_user' : ActorMethod<[], Result_6>,
+  'ego_log_list' : ActorMethod<[bigint], Result_7>,
   'ego_op_add' : ActorMethod<[Principal], Result>,
-  'ego_op_list' : ActorMethod<[], Result_7>,
+  'ego_op_list' : ActorMethod<[], Result_8>,
   'ego_op_remove' : ActorMethod<[Principal], Result>,
   'ego_owner_add' : ActorMethod<[Principal], Result>,
   'ego_owner_add_with_name' : ActorMethod<[string, Principal], Result>,
-  'ego_owner_list' : ActorMethod<[], Result_7>,
+  'ego_owner_list' : ActorMethod<[], Result_8>,
   'ego_owner_remove' : ActorMethod<[Principal], Result>,
   'ego_owner_set' : ActorMethod<[Array<Principal>], Result>,
   'ego_user_add' : ActorMethod<[Principal], Result>,
-  'ego_user_list' : ActorMethod<[], Result_7>,
+  'ego_user_list' : ActorMethod<[], Result_8>,
   'ego_user_remove' : ActorMethod<[Principal], Result>,
   'ego_user_set' : ActorMethod<[Array<Principal>], Result>,
   'get_btc_lp_reward' : ActorMethod<[bigint, bigint], bigint>,
   'get_rune_list' : ActorMethod<[], Array<TalosRunes>>,
   'get_rune_price' : ActorMethod<[RuneId], bigint>,
-  'get_user_runes_order' : ActorMethod<[], Result_8>,
-  'user_register' : ActorMethod<[string, BtcPubkey], Result_1>,
+  'get_user_all_runes_orders' : ActorMethod<[[] | [string]], Result_3>,
+  'get_user_runes_order' : ActorMethod<[], Result_3>,
+  'user_register' : ActorMethod<[string, BtcPubkey], Result_2>,
   'whoAmI' : ActorMethod<[], [] | [TalosUser]>,
 }

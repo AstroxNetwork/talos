@@ -156,3 +156,10 @@ impl Storable for UserAddress {
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct UserDetail {}
+
+#[derive(CandidType, Serialize, Deserialize, Clone)]
+pub struct CreateStakeRunesReq {
+    pub rune_id: String,
+    pub lock_time: u32,
+    pub amount: u128,
+}

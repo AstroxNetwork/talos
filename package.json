@@ -49,6 +49,7 @@
     "@types/yargs": "^17.0.17",
     "bip32": "^3.1.0",
     "bip39": "^3.0.4",
+    "bitcoinjs-lib": "^6.1.6",
     "buffer": "^6.0.3",
     "crc": "^4.1.1",
     "cross-env": "^7.0.3",
@@ -58,6 +59,7 @@
     "mockjs": "^1.1.0",
     "starkbank-ecdsa": "^1.1.5",
     "tiny-secp256k1": "^2.2.1",
+    "tslib": "^2.6.3",
     "yargs": "^17.6.2"
   },
   "devDependencies": {

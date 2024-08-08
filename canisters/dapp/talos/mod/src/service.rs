@@ -1,6 +1,7 @@
 use candid::Principal;
 use ic_stable_structures::storable::Blob;
 use ic_stable_structures::Storable;
+use std::str::FromStr;
 
 use talos_types::ordinals::RuneId;
 use talos_types::types::{
@@ -98,9 +99,30 @@ impl TalosService {
         }
     }
 
+    pub fn remove_user(principal: &Principal) -> Result<(), String> {
+        let user = Self::get_user(principal);
+        if user.is_err() {
+            return Err("User not found".to_string());
+        } else {
+            let blob: Blob<29> = principal.as_slice()[..29]
+                .try_into()
+                .map_err(|_| "failed to convert principal".to_string())?;
+            PRINCIPAL_USER.with(|m| {
+                m.borrow_mut().remove(&blob);
+            });
+
+            BTC_ADDRESS_USER.with(|m| {
+                m.borrow_mut()
+                    .remove(&UserAddress(user.unwrap().btc_address.clone()));
+            });
+            Ok(())
+        }
+    }
+
     pub fn add_runes(runes: TalosRunes) -> Result<(), String> {
         let key = runes.get_key();
-        if Self::get_runes(&runes.rune_id).is_some() {
+        let runes_id = RuneId::from_str(runes.rune_id.as_str()).map_err(|e| e.to_string())?;
+        if Self::get_runes(&runes_id).is_some() {
             return Err("Runes already exists".to_string());
         }
         LISTED_RUNES_MAP.with(|m| {
@@ -110,7 +132,7 @@ impl TalosService {
     }
 
     pub fn get_runes(rune_id: &RuneId) -> Option<TalosRunes> {
-        LISTED_RUNES_MAP.with(|m| m.borrow().get(&RunesKey(rune_id.to_string())))
+        LISTED_RUNES_MAP.with(|m| m.borrow().get(&RunesKey(format!("{}", rune_id))))
     }
 
     pub fn get_runes_list() -> Vec<TalosRunes> {
@@ -122,9 +144,21 @@ impl TalosService {
         })
     }
 
+    pub fn remove_runes(rune_id: &str) -> Result<(), String> {
+        let key = RunesKey(rune_id.to_string());
+        let runes_id = RuneId::from_str(rune_id).map_err(|e| e.to_string())?;
+        if Self::get_runes(&runes_id).is_none() {
+            return Err("Runes not found".to_string());
+        }
+        LISTED_RUNES_MAP.with(|m| {
+            m.borrow_mut().remove(&key);
+        });
+        Ok(())
+    }
+
     pub fn create_runes_order(
         caller: &Principal,
-        rune_id: &RuneId,
+        rune_id: &str,
         lock_time: u32,
         stake_amount: u128,
     ) -> Result<[u8; 4], String> {
@@ -133,6 +167,7 @@ impl TalosService {
         if user.status == UserStatus::Blocked {
             return Err("User is blocked".to_string());
         }
+        let rune_id = RuneId::from_str(rune_id).map_err(|e| e.to_string())?;
 
         match Self::get_runes(&rune_id) {
             None => return Err("Runes not found".to_string()),
@@ -142,6 +177,10 @@ impl TalosService {
                 }
                 if runes.min_stake > stake_amount {
                     return Err("Stake amount is less than minimum stake".to_string());
+                }
+                let runes_id = RuneId::from_str(runes.rune_id.as_str());
+                if runes_id.is_err() {
+                    return Err("Cannot decode rune id".to_string());
                 }
                 let xonly = user.btc_pubkey.xonly;
                 let staker = vec_to_u832(xonly.clone()).unwrap();
@@ -156,7 +195,7 @@ impl TalosService {
                         lock_time,
                     },
                     stake_amount,
-                    runes_id: runes.rune_id,
+                    runes_id: format!("{}", rune_id),
                     status: StakeStatus::Created,
                     btc_address: user.btc_address,
                 };
@@ -183,5 +222,56 @@ impl TalosService {
                 .collect::<Vec<UserStakedRunes>>()
         });
         Ok(res)
+    }
+
+    pub fn get_all_runes_orders(
+        with_principal: Option<Principal>,
+        with_rune_id: Option<String>,
+    ) -> Result<Vec<UserStakedRunes>, String> {
+        let mut _found_id = None;
+        if let Some(id) = with_rune_id {
+            let id = RuneId::from_str(id.as_str()).map_err(|e| e.to_string());
+            match id {
+                Ok(_id) => _found_id = Some(_id),
+                Err(e) => return Err(e),
+            }
+        }
+
+        let mut _found_address = None;
+        if let Some(principal) = with_principal {
+            let user = Self::get_user(&principal)?;
+            if user.status == UserStatus::Blocked {
+                return Err("User is blocked".to_string());
+            }
+            _found_address = Some(user.btc_address);
+        }
+
+        let res = RUNES_ORDERS.with(|m| {
+            m.borrow()
+                .iter()
+                .filter(|f| {
+                    if let Some(btc_address) = &_found_address {
+                        if f.1.btc_address != btc_address.to_string() {
+                            return false;
+                        }
+                    }
+                    if let Some(id) = _found_id {
+                        if f.1.runes_id != format!("{}", id).to_string() {
+                            return false;
+                        }
+                    }
+                    true
+                })
+                .map(|f| f.1.clone())
+                .collect::<Vec<UserStakedRunes>>()
+        });
+        Ok(res)
+    }
+
+    pub fn remove_order(order: [u8; 4]) -> Result<(), String> {
+        RUNES_ORDERS.with(|m| {
+            m.borrow_mut().remove(&order);
+        });
+        Ok(())
     }
 }

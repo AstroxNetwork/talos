@@ -1,6 +1,7 @@
 use super::*;
 
 #[derive(
+    CandidType,
     Debug,
     PartialEq,
     Copy,
@@ -13,7 +14,6 @@ use super::*;
     DeserializeFromStr,
     SerializeDisplay,
 )]
-#[derive(CandidType)]
 pub struct RuneId {
     pub block: u64,
     pub tx: u32,

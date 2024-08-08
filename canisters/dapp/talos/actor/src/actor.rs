@@ -12,6 +12,7 @@ use ego_macros::{inject_app_info_api, inject_ego_api};
 // ic_cdk
 use candid::candid_method;
 use candid::Principal;
+use ic_cdk::api::management_canister::bitcoin::BitcoinAddress;
 use ic_cdk::caller;
 use ic_cdk_macros::*;
 use talos_mod::service::TalosService;
@@ -22,6 +23,8 @@ use talos_mod::service::TalosService;
 // ------------------
 // injected macros
 use talos_mod::state::*;
+use talos_mod::types::CreateStakeRunesReq;
+use talos_mod::utils::vec_to_u84;
 use talos_types::ordinals::RuneId;
 use talos_types::types::{BtcPubkey, TalosRunes, TalosUser, UserStakedRunes, UserStatus};
 
@@ -77,6 +80,22 @@ pub fn admin_get_user_by_btc_address(btc_address: String) -> Result<TalosUser, S
 }
 
 #[cfg(not(feature = "no_candid"))]
+#[update(name = "admin_remove_user", guard = "owner_guard")]
+#[candid_method(update, rename = "admin_remove_user")]
+pub fn admin_remove_user(principal: Principal) -> Result<(), String> {
+    let user = TalosService::get_user(&principal)?;
+    TalosService::remove_user(&user.principal)
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[update(name = "admin_remove_user_by_address", guard = "owner_guard")]
+#[candid_method(update, rename = "admin_remove_user_by_address")]
+pub fn admin_remove_user_by_address(btc_address: String) -> Result<(), String> {
+    let user = TalosService::get_user_by_address(&btc_address)?;
+    TalosService::remove_user(&user.principal)
+}
+
+#[cfg(not(feature = "no_candid"))]
 #[query(name = "admin_get_all_users", guard = "owner_guard")]
 #[candid_method(query, rename = "admin_get_all_users")]
 pub fn admin_get_all_users() -> Vec<TalosUser> {
@@ -91,10 +110,49 @@ pub fn admin_block_user(principal: Principal) -> Result<(), String> {
 }
 
 #[cfg(not(feature = "no_candid"))]
-#[update(name = "add_rune", guard = "owner_guard")]
-#[candid_method(update, rename = "add_rune")]
-pub fn add_rune(talos_runes: TalosRunes) -> Result<(), String> {
+#[update(name = "admin_add_runes", guard = "owner_guard")]
+#[candid_method(update, rename = "admin_add_runes")]
+pub fn admin_add_runes(talos_runes: TalosRunes) -> Result<(), String> {
     TalosService::add_runes(talos_runes)
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[update(name = "admin_remove_runes", guard = "owner_guard")]
+#[candid_method(update, rename = "admin_remove_runes")]
+pub fn admin_remove_runes(runes_id: String) -> Result<(), String> {
+    TalosService::remove_runes(runes_id.as_str())
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[update(name = "admin_create_runes_order", guard = "owner_guard")]
+#[candid_method(update, rename = "admin_create_runes_order")]
+pub fn admin_create_runes_order(
+    principal: Principal,
+    req: CreateStakeRunesReq,
+) -> Result<String, String> {
+    let order =
+        TalosService::create_runes_order(&principal, &req.rune_id, req.lock_time, req.amount)?;
+    Ok(hex::encode(order))
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[update(name = "admin_remove_order", guard = "owner_guard")]
+#[candid_method(update, rename = "admin_remove_order")]
+pub fn admin_remove_order(order: String) -> Result<(), String> {
+    let order_bytes =
+        hex::decode(order).map_err(|_| "Cannot convert order to bytes".to_string())?;
+    let u84 = vec_to_u84(order_bytes)?;
+    TalosService::remove_order(u84)
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[query(name = "admin_get_user_all_runes_orders")]
+#[candid_method(query, rename = "admin_get_user_all_runes_orders")]
+pub async fn admin_get_user_all_runes_orders(
+    principal: Option<Principal>,
+    rune_id: Option<String>,
+) -> Result<Vec<UserStakedRunes>, String> {
+    TalosService::get_all_runes_orders(principal, rune_id)
 }
 
 /// 用户注册
@@ -171,7 +229,17 @@ pub async fn get_btc_lp_reward(blocks: u64, amount: u64) -> u64 {
 #[query(name = "get_user_runes_order")]
 #[candid_method(query, rename = "get_user_runes_order")]
 pub async fn get_user_runes_order() -> Result<Vec<UserStakedRunes>, String> {
-    Ok(vec![])
+    TalosService::get_user_runes_orders(&caller())
+}
+
+// #[cfg(not(feature = "no_candid"))]
+#[query(name = "get_user_all_runes_orders")]
+#[candid_method(query, rename = "get_user_all_runes_orders")]
+pub async fn get_user_all_runes_orders(
+    rune_id: Option<String>,
+) -> Result<Vec<UserStakedRunes>, String> {
+    let caller = caller();
+    TalosService::get_all_runes_orders(Some(caller), rune_id)
 }
 
 /// 创建Runes质押
@@ -181,13 +249,10 @@ pub async fn get_user_runes_order() -> Result<Vec<UserStakedRunes>, String> {
 // #[cfg(not(feature = "no_candid"))]
 #[update(name = "create_runes_order")]
 #[candid_method(update, rename = "create_runes_order")]
-pub async fn create_runes_order(
-    rune_id: RuneId,
-    lock_time: u32,
-    amount: u128,
-) -> Result<String, String> {
+pub async fn create_runes_order(req: CreateStakeRunesReq) -> Result<String, String> {
     let caller = caller();
-    let order_bytes = TalosService::create_runes_order(&caller, &rune_id, lock_time, amount)?;
+    let order_bytes =
+        TalosService::create_runes_order(&caller, &req.rune_id, req.lock_time, req.amount)?;
     Ok(hex::encode(order_bytes))
 }
 

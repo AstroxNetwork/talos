@@ -25,3 +25,15 @@ pub(crate) fn vec_to_u832(req: Vec<u8>) -> Result<[u8; 32], String> {
     }
     Ok(salt_bytes.clone())
 }
+
+pub fn vec_to_u84(req: Vec<u8>) -> Result<[u8; 4], String> {
+    if req.len() != 4 {
+        return Err("Salt length should be 4".to_string());
+    }
+    let mut salt_bytes = [0u8; 4];
+
+    for i in 0..4 {
+        salt_bytes[i] = req[i.clone()]
+    }
+    Ok(salt_bytes.clone())
+}

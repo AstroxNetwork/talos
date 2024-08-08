@@ -13,7 +13,7 @@ pub enum RunesStatus {
 
 #[derive(CandidType, Deserialize, Clone, Debug, Serialize)]
 pub struct TalosRunes {
-    pub rune_id: RuneId,
+    pub rune_id: String,
     pub runes_status: RunesStatus,
     pub min_stake: u128,
 }
@@ -34,7 +34,7 @@ impl Storable for TalosRunes {
 
 impl TalosRunes {
     pub fn get_key(&self) -> RunesKey {
-        RunesKey(self.rune_id.to_string())
+        RunesKey(self.rune_id.clone())
     }
 }
 
@@ -103,7 +103,7 @@ pub enum StakeStatus {
 pub struct UserStakedRunes {
     pub stake_payload: StakePayload,
     pub stake_amount: u128,
-    pub runes_id: RuneId,
+    pub runes_id: String,
     pub status: StakeStatus,
     pub btc_address: String,
 }
