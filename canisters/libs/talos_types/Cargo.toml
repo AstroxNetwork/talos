@@ -1,12 +1,12 @@
 [package]
-name = "talos"
+name = "talos_types"
 version = "0.1.0"
 edition = "2021"
 
 
 [lib]
 path = "src/mod.rs"
-crate-type = ["lib", "cdylib"]
+crate-type = ["lib"]
 
 [dependencies]
 async-trait = { workspace = true }
@@ -23,11 +23,9 @@ ego_types = { workspace = true }
 ego_lib = { workspace = true }
 ego_macros = { workspace = true }
 hex = { workspace = true }
-talos_mod = { path = "../mod" }
-talos_types = { workspace = true  }
+bitcoin = { workspace = true }
+ordinals = { path = "../ordinals" }
 
 [features]
-default = ["build_candid"]
-build_candid = []
-no_candid = []
+default = []
 debug = []

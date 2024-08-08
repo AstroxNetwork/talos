@@ -23,6 +23,8 @@ ego_types = { workspace = true }
 ego_lib = { workspace = true }
 ego_macros = { workspace = true }
 hex = { workspace = true }
+talos_types = { workspace = true }
+rand = { version = "0.8.5", features = ["std_rng"], default-features = false }
 
 [features]
 default = []

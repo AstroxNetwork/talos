@@ -6,12 +6,18 @@ use ic_stable_structures::{
 use crate::types::*;
 use candid::Principal;
 use ic_cdk::trap;
+use ic_stable_structures::storable::Blob;
 use std::cell::RefCell;
+use talos_types::types::{RunesKey, TalosRunes, TalosUser, UserStakedRunes};
 
-const USER_PROFILE_MEM_ID: MemoryId = MemoryId::new(0);
-const USER_WALLET_MEM_ID: MemoryId = MemoryId::new(1);
+const USER_PRINCIPAL_MEM_ID: MemoryId = MemoryId::new(0);
+const USER_ADDRESS_MEM_ID: MemoryId = MemoryId::new(1);
+
+const LISTED_RUNES: MemoryId = MemoryId::new(2);
 
 const UPGRADES: MemoryId = MemoryId::new(3);
+
+const RUNES_ORDER: MemoryId = MemoryId::new(4);
 
 const BTREE_ID: MemoryId = MemoryId::new(91);
 
@@ -27,12 +33,20 @@ thread_local! {
         MemoryManager::init(DefaultMemoryImpl::default())
     );
 
-    pub static USERS: RefCell<StableBTreeMap<u16, UserProfile, VM>> = MEMORY_MANAGER.with(|mm| {
-        RefCell::new(StableBTreeMap::init(mm.borrow().get(USER_PROFILE_MEM_ID)))
+    pub static PRINCIPAL_USER: RefCell<StableBTreeMap<Blob<29>, TalosUser, VM>> = MEMORY_MANAGER.with(|mm| {
+        RefCell::new(StableBTreeMap::init(mm.borrow().get(USER_PRINCIPAL_MEM_ID)))
     });
 
-    pub static WALLETS: RefCell<StableBTreeMap<u16, UserWallet, VM>> = MEMORY_MANAGER.with(|mm| {
-        RefCell::new(StableBTreeMap::init(mm.borrow().get(USER_WALLET_MEM_ID)))
+    pub static BTC_ADDRESS_USER: RefCell<StableBTreeMap<UserAddress, TalosUser, VM>> = MEMORY_MANAGER.with(|mm| {
+        RefCell::new(StableBTreeMap::init(mm.borrow().get(USER_ADDRESS_MEM_ID)))
+    });
+
+    pub static LISTED_RUNES_MAP: RefCell<StableBTreeMap<RunesKey, TalosRunes, VM>> = MEMORY_MANAGER.with(|mm| {
+        RefCell::new(StableBTreeMap::init(mm.borrow().get(LISTED_RUNES)))
+    });
+
+     pub static RUNES_ORDERS: RefCell<StableBTreeMap<[u8;4], UserStakedRunes, VM>> = MEMORY_MANAGER.with(|mm| {
+        RefCell::new(StableBTreeMap::init(mm.borrow().get(RUNES_ORDER)))
     });
 
     pub static BTREES: RefCell<StableBTreeMap<BtreeKey, BtreeValue, VM>> = RefCell::new(StableBTreeMap::init(get_btree_memory()));
