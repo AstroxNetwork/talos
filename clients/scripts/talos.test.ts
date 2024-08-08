@@ -8,7 +8,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 
 describe('talos', () => {
   let talosActor: ActorSubclass<talosService>;
-  test('who am i', async () => {
+  test('add setting', async () => {
     talosActor =
       // getActor use idl types
       await getActor<talosService>(
@@ -19,6 +19,16 @@ describe('talos', () => {
         // get canister ID for 'talos', `configs/talos.json` is generated
         getCanisterId('talos')!,
       );
+    await talosActor.admin_add_setting({
+      oracles_endpoint: 'https://oracles.wizz.cash',
+      staking_wallet_canister: Principal.anonymous(),
+      token_canister: Principal.anonymous(),
+      lp_rewards_ratio: 0.0001,
+    });
+
+    const lp = await talosActor.get_btc_lp_reward(BigInt(1000), BigInt(100000));
+    console.log(lp);
+
     // const who = await talosActor.whoAmI();
     // console.log(who);
   });

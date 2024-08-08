@@ -124,6 +124,7 @@ pub struct TalosSetting {
     pub oracles_endpoint: String,
     pub staking_wallet_canister: Principal,
     pub token_canister: Principal,
+    pub lp_rewards_ratio: f64,
 }
 
 impl TalosSetting {

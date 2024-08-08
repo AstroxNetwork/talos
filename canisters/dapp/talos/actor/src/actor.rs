@@ -23,7 +23,7 @@ use talos_mod::service::TalosService;
 // ------------------
 // injected macros
 use talos_mod::state::*;
-use talos_mod::types::CreateStakeRunesReq;
+use talos_mod::types::{CreateStakeRunesReq, TalosSetting};
 use talos_mod::utils::vec_to_u84;
 use talos_types::ordinals::RuneId;
 use talos_types::types::{BtcPubkey, TalosRunes, TalosUser, UserStakedRunes, UserStatus};
@@ -64,6 +64,13 @@ pub fn who_am_i() -> Option<TalosUser> {
 }
 
 // admin functions
+#[cfg(not(feature = "no_candid"))]
+#[update(name = "admin_add_setting")]
+#[candid_method(update, rename = "admin_add_setting")]
+pub fn admin_add_setting(talos_setting: TalosSetting) -> Result<(), String> {
+    TalosService::add_setting(talos_setting);
+    Ok(())
+}
 
 #[cfg(not(feature = "no_candid"))]
 #[query(name = "admin_get_user", guard = "owner_guard")]
@@ -206,9 +213,9 @@ pub fn get_rune_list() -> Vec<TalosRunes> {
 /// The price is calculated in BTC/Satoshi, u64
 /// public query, async
 // #[cfg(not(feature = "no_candid"))]
-#[query(name = "get_rune_price")]
-#[candid_method(query, rename = "get_rune_price")]
-pub async fn get_rune_price(rune_id: RuneId) -> u64 {
+#[query(name = "get_runes_btc_borrow_amount")]
+#[candid_method(query, rename = "get_runes_btc_borrow_amount")]
+pub async fn get_runes_btc_borrow_amount(rune_id: String) -> u64 {
     0
 }
 
@@ -218,7 +225,7 @@ pub async fn get_rune_price(rune_id: RuneId) -> u64 {
 #[query(name = "get_btc_lp_reward")]
 #[candid_method(query, rename = "get_btc_lp_reward")]
 pub async fn get_btc_lp_reward(blocks: u64, amount: u64) -> u64 {
-    0
+    TalosService::get_lp_rewards(blocks, amount)
 }
 
 /// 获取runes质押列表

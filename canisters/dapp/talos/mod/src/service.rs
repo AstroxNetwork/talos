@@ -274,4 +274,10 @@ impl TalosService {
         });
         Ok(())
     }
+
+    pub fn get_lp_rewards(blocks: u64, lp_amount: u64) -> u64 {
+        let setting = Self::get_setting().unwrap();
+        let rewards = setting.lp_rewards_ratio * (blocks as f64) * (lp_amount as f64);
+        rewards.floor() as u64
+    }
 }

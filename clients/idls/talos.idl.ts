@@ -9,6 +9,12 @@ export const idlFactory = ({ IDL }) => {
     'rune_id' : IDL.Text,
   });
   const Result = IDL.Variant({ 'Ok' : IDL.Null, 'Err' : IDL.Text });
+  const TalosSetting = IDL.Record({
+    'lp_rewards_ratio' : IDL.Float64,
+    'token_canister' : IDL.Principal,
+    'staking_wallet_canister' : IDL.Principal,
+    'oracles_endpoint' : IDL.Text,
+  });
   const CreateStakeRunesReq = IDL.Record({
     'lock_time' : IDL.Nat32,
     'amount' : IDL.Nat,
@@ -80,9 +86,9 @@ export const idlFactory = ({ IDL }) => {
     'Ok' : IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Text))),
     'Err' : IDL.Text,
   });
-  const RuneId = IDL.Record({ 'tx' : IDL.Nat32, 'block' : IDL.Nat64 });
   return IDL.Service({
     'admin_add_runes' : IDL.Func([TalosRunes], [Result], []),
+    'admin_add_setting' : IDL.Func([TalosSetting], [Result], []),
     'admin_block_user' : IDL.Func([IDL.Principal], [Result], []),
     'admin_create_runes_order' : IDL.Func(
         [IDL.Principal, CreateStakeRunesReq],
@@ -149,7 +155,11 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'get_rune_list' : IDL.Func([], [IDL.Vec(TalosRunes)], ['query']),
-    'get_rune_price' : IDL.Func([RuneId], [IDL.Nat64], ['query']),
+    'get_runes_btc_borrow_amount' : IDL.Func(
+        [IDL.Text],
+        [IDL.Nat64],
+        ['query'],
+      ),
     'get_user_all_runes_orders' : IDL.Func(
         [IDL.Opt(IDL.Text)],
         [Result_3],

@@ -36,7 +36,6 @@ export type Result_7 = { 'Ok' : Array<LogEntry> } |
   { 'Err' : string };
 export type Result_8 = { 'Ok' : [] | [Array<[Principal, string]>] } |
   { 'Err' : string };
-export interface RuneId { 'tx' : number, 'block' : bigint }
 export type RunesStatus = { 'Inactive' : null } |
   { 'Active' : null };
 export interface StakePayload {
@@ -55,6 +54,12 @@ export interface TalosRunes {
   'runes_status' : RunesStatus,
   'min_stake' : bigint,
   'rune_id' : string,
+}
+export interface TalosSetting {
+  'lp_rewards_ratio' : number,
+  'token_canister' : Principal,
+  'staking_wallet_canister' : Principal,
+  'oracles_endpoint' : string,
 }
 export interface TalosUser {
   'status' : UserStatus,
@@ -78,6 +83,7 @@ export interface Version {
 }
 export interface _SERVICE {
   'admin_add_runes' : ActorMethod<[TalosRunes], Result>,
+  'admin_add_setting' : ActorMethod<[TalosSetting], Result>,
   'admin_block_user' : ActorMethod<[Principal], Result>,
   'admin_create_runes_order' : ActorMethod<
     [Principal, CreateStakeRunesReq],
@@ -129,7 +135,7 @@ export interface _SERVICE {
   'ego_user_set' : ActorMethod<[Array<Principal>], Result>,
   'get_btc_lp_reward' : ActorMethod<[bigint, bigint], bigint>,
   'get_rune_list' : ActorMethod<[], Array<TalosRunes>>,
-  'get_rune_price' : ActorMethod<[RuneId], bigint>,
+  'get_runes_btc_borrow_amount' : ActorMethod<[string], bigint>,
   'get_user_all_runes_orders' : ActorMethod<[[] | [string]], Result_3>,
   'get_user_runes_order' : ActorMethod<[], Result_3>,
   'user_register' : ActorMethod<[string, BtcPubkey], Result_2>,

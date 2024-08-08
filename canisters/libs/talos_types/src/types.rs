@@ -1,9 +1,9 @@
+use std::borrow::Cow;
+
 use candid::{CandidType, Decode, Deserialize, Encode, Principal};
 use ic_stable_structures::storable::Bound;
 use ic_stable_structures::Storable;
-use ordinals::RuneId;
 use serde::Serialize;
-use std::borrow::Cow;
 
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug, Eq, PartialEq)]
 pub enum RunesStatus {
