@@ -164,7 +164,7 @@ pub async fn admin_get_user_all_runes_orders(
 
 /// 用户注册
 /// User Register
-// #[cfg(not(feature = "no_candid"))]
+#[cfg(not(feature = "no_candid"))]
 #[update(name = "user_register")]
 #[candid_method(update, rename = "user_register")]
 pub fn user_register(btc_address: String, btc_pubkey: BtcPubkey) -> Result<TalosUser, String> {
@@ -200,7 +200,7 @@ pub fn user_register(btc_address: String, btc_pubkey: BtcPubkey) -> Result<Talos
 /// Should use admin function to add new runes
 /// Then query this function to get the list of runes
 /// public query
-// #[cfg(not(feature = "no_candid"))]
+#[cfg(not(feature = "no_candid"))]
 #[query(name = "get_rune_list")]
 #[candid_method(query, rename = "get_rune_list")]
 pub fn get_rune_list() -> Vec<TalosRunes> {
@@ -212,7 +212,7 @@ pub fn get_rune_list() -> Vec<TalosRunes> {
 /// The price is used to calculate the staking reward
 /// The price is calculated in BTC/Satoshi, u64
 /// public query, async
-// #[cfg(not(feature = "no_candid"))]
+#[cfg(not(feature = "no_candid"))]
 #[query(name = "get_runes_btc_borrow_amount")]
 #[candid_method(query, rename = "get_runes_btc_borrow_amount")]
 pub async fn get_runes_btc_borrow_amount(rune_id: String) -> u64 {
@@ -221,7 +221,7 @@ pub async fn get_runes_btc_borrow_amount(rune_id: String) -> u64 {
 
 /// 获取BTC质押周期对应收益
 /// Get btc LP Token rewards passing block count
-// #[cfg(not(feature = "no_candid"))]
+#[cfg(not(feature = "no_candid"))]
 #[query(name = "get_btc_lp_reward")]
 #[candid_method(query, rename = "get_btc_lp_reward")]
 pub async fn get_btc_lp_reward(blocks: u64, amount: u64) -> u64 {
@@ -232,14 +232,14 @@ pub async fn get_btc_lp_reward(blocks: u64, amount: u64) -> u64 {
 /// Get user runes staking list
 /// Passing user principal, return the list of runes staked by the user
 /// Guard by caller principal
-// #[cfg(not(feature = "no_candid"))]
+#[cfg(not(feature = "no_candid"))]
 #[query(name = "get_user_runes_order")]
 #[candid_method(query, rename = "get_user_runes_order")]
 pub async fn get_user_runes_order() -> Result<Vec<UserStakedRunes>, String> {
     TalosService::get_user_runes_orders(&caller())
 }
 
-// #[cfg(not(feature = "no_candid"))]
+#[cfg(not(feature = "no_candid"))]
 #[query(name = "get_user_all_runes_orders")]
 #[candid_method(query, rename = "get_user_all_runes_orders")]
 pub async fn get_user_all_runes_orders(
@@ -253,7 +253,7 @@ pub async fn get_user_all_runes_orders(
 /// Get user BTC staking list
 /// Passing user principal, return the list of BTC staked by the user
 /// Guard by caller principal
-// #[cfg(not(feature = "no_candid"))]
+#[cfg(not(feature = "no_candid"))]
 #[update(name = "create_runes_order")]
 #[candid_method(update, rename = "create_runes_order")]
 pub async fn create_runes_order(req: CreateStakeRunesReq) -> Result<String, String> {
