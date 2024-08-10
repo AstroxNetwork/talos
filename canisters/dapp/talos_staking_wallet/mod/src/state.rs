@@ -1,8 +1,7 @@
-use ego_macros::{inject_app_info, inject_ego_data};
-use std::cell::RefCell;
-use ic_stable_structures::Memory;
 use crate::types::StableState;
-use crate::memory::CONFIG;
+use ego_macros::{inject_app_info, inject_ego_data};
+use ic_stable_structures::Memory;
+use std::cell::RefCell;
 
 inject_ego_data!();
 inject_app_info!();
@@ -14,10 +13,9 @@ fn on_canister_added(name: &str, canister_id: Principal) {
             "on_canister_added name: {}, canister_id: {}",
             name, canister_id
         )
-            .as_str(),
+        .as_str(),
     );
 }
-
 
 /// Preupdate hook for stable state, we don't need stable save anymore
 /// use memory to save state
@@ -45,8 +43,6 @@ pub fn pre_upgrade() {
     let memory = crate::memory::get_upgrades_memory();
     crate::memory::write(&memory, 0, &len.to_le_bytes());
     crate::memory::write(&memory, 4, &state_bytes);
-
-
 }
 
 /// Postupgrade hook is used to restore state
@@ -94,6 +90,4 @@ pub fn post_upgrade() {
             app_info_post_upgrade(app_info);
         }
     }
-
-
 }

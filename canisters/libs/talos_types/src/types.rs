@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use candid::{CandidType, Decode, Deserialize, Encode, Principal};
-use ic_cdk::api::management_canister::ecdsa::{EcdsaKeyId, EcdsaPublicKeyArgument};
 use ic_stable_structures::storable::Bound;
 use ic_stable_structures::Storable;
 use serde::Serialize;

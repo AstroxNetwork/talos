@@ -1,3 +1,4 @@
+pub mod core_dao;
 pub mod memory;
 pub mod service;
 pub mod state;

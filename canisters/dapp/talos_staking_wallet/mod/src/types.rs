@@ -1,14 +1,13 @@
-use candid::{CandidType, Principal};
-use ic_stable_structures::storable::Bound;
-use ic_stable_structures::Storable;
-use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
+use candid::CandidType;
 use candid::{Decode, Encode};
 use ego_types::app_info::AppInfo;
 use ego_types::registry::Registry;
 use ego_types::user::User;
-use itertools::Itertools;
+use ic_stable_structures::storable::Bound;
+use ic_stable_structures::Storable;
+use serde::{Deserialize, Serialize};
 
 #[allow(dead_code)]
 const MAX_STATE_SIZE: u32 = 2 * 1024 * 1024;

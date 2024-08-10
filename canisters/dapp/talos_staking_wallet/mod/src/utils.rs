@@ -54,6 +54,30 @@ pub fn get_script_from_address(address: String) -> Result<AddressInfo, String> {
     })
 }
 
+pub(crate) fn vec_to_u81(req: Vec<u8>) -> Result<[u8; 1], String> {
+    if req.len() != 1 {
+        return Err("Salt length should be 1".to_string());
+    }
+    let mut salt_bytes = [0u8; 1];
+
+    for i in 0..1 {
+        salt_bytes[i] = req[i.clone()]
+    }
+    Ok(salt_bytes.clone())
+}
+
+pub(crate) fn vec_to_u82(req: Vec<u8>) -> Result<[u8; 2], String> {
+    if req.len() != 2 {
+        return Err("Salt length should be 2".to_string());
+    }
+    let mut salt_bytes = [0u8; 2];
+
+    for i in 0..2 {
+        salt_bytes[i] = req[i.clone()]
+    }
+    Ok(salt_bytes.clone())
+}
+
 pub(crate) fn vec_to_u832(req: Vec<u8>) -> Result<[u8; 32], String> {
     if req.len() != 32 {
         return Err("Salt length should be 32".to_string());
@@ -61,6 +85,18 @@ pub(crate) fn vec_to_u832(req: Vec<u8>) -> Result<[u8; 32], String> {
     let mut salt_bytes = [0u8; 32];
 
     for i in 0..32 {
+        salt_bytes[i] = req[i.clone()]
+    }
+    Ok(salt_bytes.clone())
+}
+
+pub(crate) fn vec_to_u820(req: Vec<u8>) -> Result<[u8; 20], String> {
+    if req.len() != 20 {
+        return Err("Salt length should be 20".to_string());
+    }
+    let mut salt_bytes = [0u8; 20];
+
+    for i in 0..20 {
         salt_bytes[i] = req[i.clone()]
     }
     Ok(salt_bytes.clone())

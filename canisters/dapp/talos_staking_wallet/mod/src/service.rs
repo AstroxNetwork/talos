@@ -1,7 +1,7 @@
 use crate::memory::WALLETS;
 use crate::utils::{get_script_from_address, vec_to_u832, AddressInfo};
 use bitcoin::key::{Secp256k1, XOnlyPublicKey};
-use bitcoin::{Network, Script};
+use bitcoin::Network;
 use candid::Principal;
 use ic_stable_structures::Storable;
 use ic_tss::ecdsa::EcdsaKeyIds;
