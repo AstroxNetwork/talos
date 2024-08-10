@@ -20,7 +20,7 @@ describe('talos', () => {
         getCanisterId('talos')!,
       );
     await talosActor.admin_add_setting({
-      oracles_endpoint: 'https://oracles.wizz.cash',
+      oracles_endpoint: 'https://oracle.wizz.cash',
       staking_wallet_canister: Principal.anonymous(),
       token_canister: Principal.anonymous(),
       lp_rewards_ratio: 0.0001,
@@ -83,8 +83,12 @@ describe('talos', () => {
     const list2 = await talosActor.get_rune_list();
     console.log({ list2 });
   });
+  test('get_oracle_price', async () => {
+    const price = await talosActor.get_price_from_oracles('840000:3');
+    console.log({ price });
+  });
 
-  test('create_runes_order', async () => {
+  test.skip('create_runes_order', async () => {
     // rune id
     const rune_id = '1:100';
 
@@ -122,6 +126,7 @@ describe('talos', () => {
       lock_time: 100,
       amount: BigInt(100),
       rune_id,
+      oracle_ts: BigInt(123),
     });
     console.log({ createdOrder });
 

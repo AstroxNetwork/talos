@@ -1,24 +1,31 @@
-use candid::Principal;
+use crate::http::HttpService;
+use crate::memory::{
+    insert_btree, BTC_ADDRESS_USER, BTC_ORDERS, BTREES, LISTED_RUNES_MAP, ORACLE_ORDERS,
+    PRINCIPAL_USER, RUNES_ORDERS,
+};
+use crate::types::{
+    BtreeKey, BtreeValue, OracleOrder, OracleOrderSave, OracleResponse, TalosSetting, UserAddress,
+};
+use crate::utils::{new_order_id, vec_to_u832};
+use candid::{CandidType, Encode, Principal};
 use ic_stable_structures::storable::Blob;
 use ic_stable_structures::Storable;
+use serde::Serialize;
+use serde_json::json;
 use std::str::FromStr;
-
 use talos_types::ordinals::RuneId;
 use talos_types::types::{
-    RunesKey, RunesStatus, StakePayload, StakeStatus, TalosRunes, TalosUser, UserStakedRunes,
-    UserStatus,
+    BTCStakePayload, RunesKey, RunesStatus, StakePayload, StakeStatus, StakingTarget, TalosRunes,
+    TalosUser, UserStakedBTC, UserStakedRunes, UserStatus,
 };
 
-use crate::memory::{
-    insert_btree, BTC_ADDRESS_USER, BTREES, LISTED_RUNES_MAP, PRINCIPAL_USER, RUNES_ORDERS,
-};
-use crate::types::{BtreeKey, BtreeValue, TalosSetting, UserAddress};
-use crate::utils::{new_order_id, vec_to_u832};
-
-pub static DEFAULT_RUNES_PROPTOCOL: u128 = 1;
+pub static DEFAULT_BTC_PROTOCOL: u128 = 0;
+pub static DEFAULT_RUNES_PROTOCOL: u128 = 1;
 pub static DEFAULT_STAKING_VERSION: u128 = 0;
 
 pub static DEFAULT_VOUT: u32 = 0;
+
+pub const GET_TX_BYTES: u64 = 3u64;
 
 pub struct TalosService {}
 
@@ -161,6 +168,7 @@ impl TalosService {
         rune_id: &str,
         lock_time: u32,
         stake_amount: u128,
+        oracle_ts: u64,
     ) -> Result<[u8; 4], String> {
         let user = Self::get_user(&caller)?;
 
@@ -189,8 +197,8 @@ impl TalosService {
                     stake_payload: StakePayload {
                         id: id.clone(),
                         staker,
-                        protocol: DEFAULT_RUNES_PROPTOCOL, // runes protocol
-                        version: DEFAULT_STAKING_VERSION,  // default version
+                        protocol: DEFAULT_RUNES_PROTOCOL, // runes protocol
+                        version: DEFAULT_STAKING_VERSION, // default version
                         vout: DEFAULT_VOUT,
                         lock_time,
                     },
@@ -198,6 +206,7 @@ impl TalosService {
                     runes_id: format!("{}", rune_id),
                     status: StakeStatus::Created,
                     btc_address: user.btc_address,
+                    oracle_ts,
                 };
                 RUNES_ORDERS.with(|m| {
                     m.borrow_mut().insert(id.clone(), runes_order);
@@ -206,6 +215,88 @@ impl TalosService {
                 Ok(id.clone())
             }
         }
+    }
+
+    pub async fn get_price_from_oracles(runes_id: String) -> Result<OracleOrder, String> {
+        let http = HttpService::default();
+        #[derive(CandidType, Serialize)]
+        struct TokenPriceReq {
+            pub tokens: Vec<String>,
+        }
+
+        let res = http
+            .api_call::<OracleResponse>(
+                GET_TX_BYTES + ic_cdk::api::time() / 1000u64,
+                "tokenPrices",
+                serde_json::to_string(&TokenPriceReq {
+                    tokens: vec![runes_id.clone()],
+                })
+                .unwrap()
+                .into_bytes()
+                .into(),
+                None,
+            )
+            .await;
+        match res {
+            Err(e) => return Err(e),
+            Ok(res) => {
+                if res.data.is_some() && res.data.clone().unwrap().prices.is_empty() == false {
+                    let price = res.data.unwrap().prices.clone();
+                    let first = price[0].clone();
+                    ORACLE_ORDERS.with(|o| {
+                        o.borrow_mut().insert(
+                            first.clone().ts,
+                            OracleOrderSave {
+                                price: first.clone().price.to_string(),
+                                token: first.clone().token,
+                                ts: first.clone().ts,
+                            },
+                        )
+                    });
+                    Ok(first.clone())
+                } else {
+                    return Err(format!(
+                        "No response from oracles: {:?}",
+                        serde_json::to_string(&res)
+                    ));
+                }
+            }
+        }
+    }
+
+    pub fn create_btc_order(
+        caller: &Principal,
+        lock_time: u32,
+        stake_amount: u128,
+        staking_target: StakingTarget,
+    ) -> Result<[u8; 4], String> {
+        let user = Self::get_user(&caller)?;
+
+        if user.status == UserStatus::Blocked {
+            return Err("User is blocked".to_string());
+        }
+        let xonly = user.btc_pubkey.xonly;
+        let staker = vec_to_u832(xonly.clone()).unwrap();
+        let id = new_order_id();
+        let btc_order = UserStakedBTC {
+            stake_payload: BTCStakePayload {
+                id,
+                staker,
+                protocol: DEFAULT_BTC_PROTOCOL,
+                version: DEFAULT_STAKING_VERSION,
+                vout: 0,
+                lock_time,
+            },
+            stake_amount,
+            status: StakeStatus::Created,
+            btc_address: user.btc_address,
+            stake_target: staking_target.clone(),
+        };
+        BTC_ORDERS.with(|m| {
+            m.borrow_mut().insert(id.clone(), btc_order);
+        });
+
+        Ok(id.clone())
     }
 
     pub fn get_user_runes_orders(caller: &Principal) -> Result<Vec<UserStakedRunes>, String> {
@@ -220,6 +311,22 @@ impl TalosService {
                 .filter(|f| f.1.btc_address == user.btc_address)
                 .map(|f| f.1.clone())
                 .collect::<Vec<UserStakedRunes>>()
+        });
+        Ok(res)
+    }
+
+    pub fn get_user_btc_orders(caller: &Principal) -> Result<Vec<UserStakedBTC>, String> {
+        let user = Self::get_user(&caller)?;
+        if user.status == UserStatus::Blocked {
+            return Err("User is blocked".to_string());
+        }
+
+        let res = BTC_ORDERS.with(|m| {
+            m.borrow()
+                .iter()
+                .filter(|f| f.1.btc_address == user.btc_address)
+                .map(|f| f.1.clone())
+                .collect::<Vec<UserStakedBTC>>()
         });
         Ok(res)
     }
@@ -268,7 +375,44 @@ impl TalosService {
         Ok(res)
     }
 
-    pub fn remove_order(order: [u8; 4]) -> Result<(), String> {
+    pub fn get_all_btc_orders(
+        with_principal: Option<Principal>,
+    ) -> Result<Vec<UserStakedBTC>, String> {
+        let mut _found_address = None;
+        if let Some(principal) = with_principal {
+            let user = Self::get_user(&principal)?;
+            if user.status == UserStatus::Blocked {
+                return Err("User is blocked".to_string());
+            }
+            _found_address = Some(user.btc_address);
+        }
+
+        let res = BTC_ORDERS.with(|m| {
+            m.borrow()
+                .iter()
+                .filter(|f| {
+                    if let Some(btc_address) = &_found_address {
+                        if f.1.btc_address != btc_address.to_string() {
+                            return false;
+                        }
+                    }
+
+                    true
+                })
+                .map(|f| f.1.clone())
+                .collect::<Vec<UserStakedBTC>>()
+        });
+        Ok(res)
+    }
+
+    pub fn remove_btc_order(order: [u8; 4]) -> Result<(), String> {
+        BTC_ORDERS.with(|m| {
+            m.borrow_mut().remove(&order);
+        });
+        Ok(())
+    }
+
+    pub fn remove_runes_order(order: [u8; 4]) -> Result<(), String> {
         RUNES_ORDERS.with(|m| {
             m.borrow_mut().remove(&order);
         });

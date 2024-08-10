@@ -3,13 +3,13 @@ pub mod actor;
 #[allow(unused_imports)]
 use candid::Principal;
 #[allow(unused_imports)]
-use talos_mod::types::*;
-#[allow(unused_imports)]
 use ego_types::app::{AppId, Version};
 #[allow(unused_imports)]
 use ego_types::app_info::AppInfo;
 #[allow(unused_imports)]
 use std::collections::BTreeMap;
+#[allow(unused_imports)]
+use talos_staking_wallet_mod::types::*;
 
 candid::export_service!();
 

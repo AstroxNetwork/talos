@@ -23,6 +23,10 @@ ego_types = { workspace = true }
 ego_lib = { workspace = true }
 ego_macros = { workspace = true }
 hex = { workspace = true }
+talos_types = { workspace = true }
+sha2 = { workspace = true }
+ic_tss = { workspace = true }
+bitcoin = { workspace = true }
 
 [features]
 default = []

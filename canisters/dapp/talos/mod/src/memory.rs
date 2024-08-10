@@ -3,12 +3,14 @@ use ic_stable_structures::{
     DefaultMemoryImpl, Memory, StableBTreeMap,
 };
 
+use crate::http;
+use crate::http::payload::CachedPayload;
 use crate::types::*;
 use candid::Principal;
 use ic_cdk::trap;
 use ic_stable_structures::storable::Blob;
 use std::cell::RefCell;
-use talos_types::types::{RunesKey, TalosRunes, TalosUser, UserStakedRunes};
+use talos_types::types::{RunesKey, TalosRunes, TalosUser, UserStakedBTC, UserStakedRunes};
 
 const USER_PRINCIPAL_MEM_ID: MemoryId = MemoryId::new(0);
 const USER_ADDRESS_MEM_ID: MemoryId = MemoryId::new(1);
@@ -18,7 +20,11 @@ const LISTED_RUNES: MemoryId = MemoryId::new(2);
 const UPGRADES: MemoryId = MemoryId::new(3);
 
 const RUNES_ORDER: MemoryId = MemoryId::new(4);
+const BTC_ORDER: MemoryId = MemoryId::new(5);
 
+const ORACLE_ORDER: MemoryId = MemoryId::new(6);
+
+const CACHED_MEM_ID: MemoryId = MemoryId::new(90);
 const BTREE_ID: MemoryId = MemoryId::new(91);
 
 #[allow(dead_code)]
@@ -45,8 +51,19 @@ thread_local! {
         RefCell::new(StableBTreeMap::init(mm.borrow().get(LISTED_RUNES)))
     });
 
-     pub static RUNES_ORDERS: RefCell<StableBTreeMap<[u8;4], UserStakedRunes, VM>> = MEMORY_MANAGER.with(|mm| {
+    pub static RUNES_ORDERS: RefCell<StableBTreeMap<[u8;4], UserStakedRunes, VM>> = MEMORY_MANAGER.with(|mm| {
         RefCell::new(StableBTreeMap::init(mm.borrow().get(RUNES_ORDER)))
+    });
+
+    pub static BTC_ORDERS: RefCell<StableBTreeMap<[u8;4], UserStakedBTC, VM>> = MEMORY_MANAGER.with(|mm| {
+        RefCell::new(StableBTreeMap::init(mm.borrow().get(BTC_ORDER)))
+    });
+
+    pub static ORACLE_ORDERS: RefCell<StableBTreeMap<u64, OracleOrderSave, VM>> = MEMORY_MANAGER.with(|mm| {
+        RefCell::new(StableBTreeMap::init(mm.borrow().get(ORACLE_ORDER)))
+    });
+    pub static CACHES: RefCell<StableBTreeMap<u64, CachedPayload, VM>> = MEMORY_MANAGER.with(|mm| {
+        RefCell::new(StableBTreeMap::init(mm.borrow().get(CACHED_MEM_ID)))
     });
 
     pub static BTREES: RefCell<StableBTreeMap<BtreeKey, BtreeValue, VM>> = RefCell::new(StableBTreeMap::init(get_btree_memory()));

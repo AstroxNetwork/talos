@@ -1,10 +1,9 @@
-use candid::CandidType;
+use candid::{CandidType, Principal};
 use ic_stable_structures::storable::Bound;
 use ic_stable_structures::Storable;
 use serde::{Deserialize, Serialize};
 use std::borrow::Cow;
 
-use crate::memory::{USERS, WALLETS};
 use candid::{Decode, Encode};
 use ego_types::app_info::AppInfo;
 use ego_types::registry::Registry;
@@ -86,62 +85,6 @@ impl Storable for UserWallet {
         max_size: MAX_USER_WALLET_SIZE,
         is_fixed_size: false,
     };
-}
-
-pub struct Example {}
-
-impl Example {
-    pub fn add_user(user_id: u16, user_name: String) -> UserProfile {
-        USERS.with(|users| {
-            let mut user_borrow_mut = users.borrow_mut();
-
-            // if !user_borrow_mut.contains_key(&user_id) {
-            user_borrow_mut.insert(user_id, UserProfile { user_id, user_name });
-            // }
-
-            user_borrow_mut.get(&user_id).unwrap()
-        })
-    }
-
-    pub fn get_user(user_id: u16) -> Option<UserProfile> {
-        USERS.with(|users| users.borrow().get(&user_id))
-    }
-
-    pub fn get_all_users() -> Vec<UserProfile> {
-        USERS.with(|users| {
-            users
-                .borrow()
-                .iter()
-                .map(|(_, user_profile)| user_profile)
-                .collect_vec()
-        })
-    }
-
-    pub fn add_wallet(user_id: u16, balance: u32) -> UserWallet {
-        WALLETS.with(|wallets| {
-            let mut user_borrow_mut = wallets.borrow_mut();
-
-            if !user_borrow_mut.contains_key(&user_id) {
-                user_borrow_mut.insert(user_id, UserWallet { user_id, balance });
-            }
-
-            user_borrow_mut.get(&user_id).unwrap()
-        })
-    }
-
-    pub fn get_wallet(user_id: u16) -> Option<UserWallet> {
-        WALLETS.with(|wallets| wallets.borrow().get(&user_id))
-    }
-
-    pub fn get_all_wallets() -> Vec<UserWallet> {
-        WALLETS.with(|wallets| {
-            wallets
-                .borrow()
-                .iter()
-                .map(|(_, user_profile)| user_profile)
-                .collect_vec()
-        })
-    }
 }
 
 /// We define an example key with String

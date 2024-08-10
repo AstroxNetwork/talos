@@ -8,6 +8,7 @@ use ego_types::user::User;
 use ic_stable_structures::storable::Bound;
 use ic_stable_structures::Storable;
 use serde::{Deserialize, Serialize};
+use talos_types::types::StakingTarget;
 
 #[allow(dead_code)]
 const MAX_STATE_SIZE: u32 = 2 * 1024 * 1024;
@@ -163,4 +164,65 @@ pub struct CreateStakeRunesReq {
     pub rune_id: String,
     pub lock_time: u32,
     pub amount: u128,
+    pub oracle_ts: u64,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone)]
+pub struct CreateStakeBTCReq {
+    pub lock_time: u32,
+    pub amount: u128,
+    pub target: StakingTarget,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Ord, PartialOrd, Eq, PartialEq)]
+pub enum UserStakeOrderType {
+    Runes,
+    BTC(StakingTarget),
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone)]
+pub struct UserStakeOrder {
+    pub order_id: String,
+    pub order_type: UserStakeOrderType,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone)]
+pub struct OracleResponse {
+    code: u32,
+    message: String,
+    pub data: Option<DataResponse>,
+    success: bool,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone)]
+pub struct DataResponse {
+    pub prices: Vec<OracleOrder>,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone)]
+pub struct OracleOrder {
+    pub ts: u64,
+    pub token: String,
+    pub price: f64,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Clone)]
+pub struct OracleOrderSave {
+    pub ts: u64,
+    pub token: String,
+    pub price: String,
+}
+
+impl Storable for OracleOrderSave {
+    fn to_bytes(&self) -> Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+    const BOUND: Bound = Bound::Bounded {
+        max_size: 64,
+        is_fixed_size: false,
+    };
 }

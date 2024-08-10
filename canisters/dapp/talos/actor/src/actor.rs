@@ -13,6 +13,7 @@ use ego_macros::{inject_app_info_api, inject_ego_api};
 use candid::candid_method;
 use candid::Principal;
 use ic_cdk::api::management_canister::bitcoin::BitcoinAddress;
+use ic_cdk::api::management_canister::http_request::{HttpResponse, TransformArgs};
 use ic_cdk::caller;
 use ic_cdk_macros::*;
 use talos_mod::service::TalosService;
@@ -23,10 +24,15 @@ use talos_mod::service::TalosService;
 // ------------------
 // injected macros
 use talos_mod::state::*;
-use talos_mod::types::{CreateStakeRunesReq, TalosSetting};
+use talos_mod::types::{
+    CreateStakeBTCReq, CreateStakeRunesReq, OracleOrder, TalosSetting, UserStakeOrder,
+    UserStakeOrderType,
+};
 use talos_mod::utils::vec_to_u84;
 use talos_types::ordinals::RuneId;
-use talos_types::types::{BtcPubkey, TalosRunes, TalosUser, UserStakedRunes, UserStatus};
+use talos_types::types::{
+    BtcPubkey, TalosRunes, TalosUser, UserStakedBTC, UserStakedRunes, UserStatus,
+};
 
 // ------------------
 //
@@ -54,6 +60,19 @@ pub fn pre_upgrade() {
 #[post_upgrade]
 pub fn post_upgrade() {
     talos_mod::state::post_upgrade();
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[query(name = "transform")]
+#[candid_method(query, rename = "transform")]
+fn transform(response: TransformArgs) -> HttpResponse {
+    let res = response.response;
+    // remove header
+    HttpResponse {
+        status: res.status,
+        headers: Vec::default(),
+        body: res.body,
+    }
 }
 
 #[cfg(not(feature = "no_candid"))]
@@ -136,20 +155,46 @@ pub fn admin_remove_runes(runes_id: String) -> Result<(), String> {
 pub fn admin_create_runes_order(
     principal: Principal,
     req: CreateStakeRunesReq,
-) -> Result<String, String> {
+) -> Result<UserStakeOrder, String> {
+    let order = TalosService::create_runes_order(
+        &principal,
+        &req.rune_id,
+        req.lock_time,
+        req.amount,
+        req.oracle_ts,
+    )?;
+    Ok(UserStakeOrder {
+        order_id: hex::encode(order),
+        order_type: UserStakeOrderType::Runes,
+    })
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[update(name = "admin_create_btc_order", guard = "owner_guard")]
+#[candid_method(update, rename = "admin_create_btc_order")]
+pub fn admin_create_btc_order(
+    principal: Principal,
+    req: CreateStakeBTCReq,
+) -> Result<UserStakeOrder, String> {
     let order =
-        TalosService::create_runes_order(&principal, &req.rune_id, req.lock_time, req.amount)?;
-    Ok(hex::encode(order))
+        TalosService::create_btc_order(&principal, req.lock_time, req.amount, req.target.clone())?;
+    Ok(UserStakeOrder {
+        order_id: hex::encode(order),
+        order_type: UserStakeOrderType::BTC(req.target.clone()),
+    })
 }
 
 #[cfg(not(feature = "no_candid"))]
 #[update(name = "admin_remove_order", guard = "owner_guard")]
 #[candid_method(update, rename = "admin_remove_order")]
-pub fn admin_remove_order(order: String) -> Result<(), String> {
+pub fn admin_remove_order(order: UserStakeOrder) -> Result<(), String> {
     let order_bytes =
-        hex::decode(order).map_err(|_| "Cannot convert order to bytes".to_string())?;
+        hex::decode(order.order_id).map_err(|_| "Cannot convert order to bytes".to_string())?;
     let u84 = vec_to_u84(order_bytes)?;
-    TalosService::remove_order(u84)
+    match order.order_type {
+        UserStakeOrderType::Runes => TalosService::remove_runes_order(u84),
+        UserStakeOrderType::BTC(_) => TalosService::remove_btc_order(u84),
+    }
 }
 
 #[cfg(not(feature = "no_candid"))]
@@ -160,6 +205,15 @@ pub async fn admin_get_user_all_runes_orders(
     rune_id: Option<String>,
 ) -> Result<Vec<UserStakedRunes>, String> {
     TalosService::get_all_runes_orders(principal, rune_id)
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[query(name = "admin_get_user_all_btc_orders")]
+#[candid_method(query, rename = "admin_get_user_all_btc_orders")]
+pub async fn admin_get_user_all_btc_orders(
+    principal: Option<Principal>,
+) -> Result<Vec<UserStakedBTC>, String> {
+    TalosService::get_all_btc_orders(principal)
 }
 
 /// 用户注册
@@ -240,6 +294,13 @@ pub async fn get_user_runes_order() -> Result<Vec<UserStakedRunes>, String> {
 }
 
 #[cfg(not(feature = "no_candid"))]
+#[query(name = "get_user_btc_order")]
+#[candid_method(query, rename = "get_user_btc_order")]
+pub async fn get_user_btc_order() -> Result<Vec<UserStakedBTC>, String> {
+    TalosService::get_user_btc_orders(&caller())
+}
+
+#[cfg(not(feature = "no_candid"))]
 #[query(name = "get_user_all_runes_orders")]
 #[candid_method(query, rename = "get_user_all_runes_orders")]
 pub async fn get_user_all_runes_orders(
@@ -249,6 +310,14 @@ pub async fn get_user_all_runes_orders(
     TalosService::get_all_runes_orders(Some(caller), rune_id)
 }
 
+#[cfg(not(feature = "no_candid"))]
+#[query(name = "get_user_all_btc_orders")]
+#[candid_method(query, rename = "get_user_all_btc_orders")]
+pub async fn get_user_all_btc_orders() -> Result<Vec<UserStakedBTC>, String> {
+    let caller = caller();
+    TalosService::get_all_btc_orders(Some(caller))
+}
+
 /// 创建Runes质押
 /// Get user BTC staking list
 /// Passing user principal, return the list of BTC staked by the user
@@ -256,11 +325,39 @@ pub async fn get_user_all_runes_orders(
 #[cfg(not(feature = "no_candid"))]
 #[update(name = "create_runes_order")]
 #[candid_method(update, rename = "create_runes_order")]
-pub async fn create_runes_order(req: CreateStakeRunesReq) -> Result<String, String> {
+pub async fn create_runes_order(req: CreateStakeRunesReq) -> Result<UserStakeOrder, String> {
+    let caller = caller();
+    let order_bytes = TalosService::create_runes_order(
+        &caller,
+        &req.rune_id,
+        req.lock_time,
+        req.amount,
+        req.oracle_ts,
+    )?;
+    Ok(UserStakeOrder {
+        order_id: hex::encode(order_bytes),
+        order_type: UserStakeOrderType::Runes,
+    })
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[update(name = "create_btc_order")]
+#[candid_method(update, rename = "create_btc_order")]
+pub async fn create_btc_order(req: CreateStakeBTCReq) -> Result<UserStakeOrder, String> {
     let caller = caller();
     let order_bytes =
-        TalosService::create_runes_order(&caller, &req.rune_id, req.lock_time, req.amount)?;
-    Ok(hex::encode(order_bytes))
+        TalosService::create_btc_order(&caller, req.lock_time, req.amount, req.target.clone())?;
+    Ok(UserStakeOrder {
+        order_id: hex::encode(order_bytes),
+        order_type: UserStakeOrderType::BTC(req.target.clone()),
+    })
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[update(name = "get_price_from_oracles")]
+#[candid_method(update, rename = "get_price_from_oracles")]
+pub async fn get_price_from_oracles(rune_id: String) -> Result<OracleOrder, String> {
+    TalosService::get_price_from_oracles(rune_id).await
 }
 
 // 创建core质押/core质押提交

@@ -25,6 +25,7 @@ ego_macros = { workspace = true }
 hex = { workspace = true }
 bitcoin = { workspace = true }
 ordinals = { path = "../ordinals" }
+ic_tss = { path = "../ic_tss" }
 
 [features]
 default = []

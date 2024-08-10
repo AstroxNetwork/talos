@@ -1,6 +1,7 @@
 use std::borrow::Cow;
 
 use candid::{CandidType, Decode, Deserialize, Encode, Principal};
+use ic_cdk::api::management_canister::ecdsa::{EcdsaKeyId, EcdsaPublicKeyArgument};
 use ic_stable_structures::storable::Bound;
 use ic_stable_structures::Storable;
 use serde::Serialize;
@@ -106,6 +107,7 @@ pub struct UserStakedRunes {
     pub runes_id: String,
     pub status: StakeStatus,
     pub btc_address: String,
+    pub oracle_ts: u64,
 }
 
 impl Storable for UserStakedRunes {
@@ -132,12 +134,33 @@ pub struct StakePayload {
     pub lock_time: u32,
 }
 
+#[derive(CandidType, Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Ord, PartialOrd)]
+pub enum StakingTarget {
+    Babylon,
+    CoreDao,
+}
+
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct UserStakedBTC {
     pub stake_payload: BTCStakePayload,
     pub stake_amount: u128,
-    pub runes: TalosRunes,
     pub status: StakeStatus,
+    pub btc_address: String,
+    pub stake_target: StakingTarget,
+}
+
+impl Storable for UserStakedBTC {
+    fn to_bytes(&self) -> Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+    const BOUND: Bound = Bound::Bounded {
+        max_size: 1024,
+        is_fixed_size: false,
+    };
 }
 
 #[derive(CandidType, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -148,4 +171,36 @@ pub struct BTCStakePayload {
     pub version: u128,
     pub vout: u32,
     pub lock_time: u32,
+}
+
+#[derive(CandidType, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
+pub struct StakingWallet {
+    pub user_principal: Principal,
+    pub user_btc_address: String,
+    pub stake_target: StakingTarget,
+    pub stake_address: String,
+    pub bytes: [u8; 32],
+}
+
+impl Storable for StakingWallet {
+    fn to_bytes(&self) -> Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+    const BOUND: Bound = Bound::Bounded {
+        max_size: 1024,
+        is_fixed_size: false,
+    };
+}
+
+#[derive(CandidType, Clone, Serialize, Deserialize)]
+pub struct StakingWalletCreateReq {
+    pub user_principal: Principal,
+    pub user_btc_address: String,
+    pub stake_target: StakingTarget,
+    pub order_id: [u8; 4],
+    pub key: String,
 }

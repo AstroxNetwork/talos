@@ -23,6 +23,11 @@ ego_types = { workspace = true }
 ego_lib = { workspace = true }
 ego_macros = { workspace = true }
 hex = { workspace = true }
+# ed25519-dalek = { workspace = true }
+# k256 = { git = "https://github.com/altkdf/elliptic-curves", branch = "schnorr_canister", features = ["schnorr"] }
+sha2 = { workspace = true }
+# getrandom = { workspace = true }
+
 
 [features]
 default = []
