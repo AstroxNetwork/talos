@@ -1,5 +1,5 @@
 use crate::memory::WALLETS;
-use crate::utils::{get_script_from_address, AddressInfo};
+use crate::utils::{get_script_from_address, vec_to_u832, AddressInfo};
 use bitcoin::key::{Secp256k1, XOnlyPublicKey};
 use bitcoin::{Network, Script};
 use candid::Principal;
@@ -19,6 +19,11 @@ impl WalletService {
         let stake_target = req.stake_target;
         let bytes = create_bytes(stake_target.clone(), order_id, user_principal.clone());
         let AddressInfo { network, .. } = get_script_from_address(req.user_btc_address.clone())?;
+
+        let found = Self::get_staking_wallet(hex::encode(bytes));
+        if found.is_some() {
+            return Ok(found.unwrap());
+        }
 
         let stake_address = match stake_target {
             StakingTarget::Babylon => {
@@ -41,8 +46,10 @@ impl WalletService {
         Ok(wallet.clone())
     }
 
-    pub fn get_staking_wallet(bytes: [u8; 32]) -> Option<StakingWallet> {
-        WALLETS.with(|w| w.borrow().get(&bytes))
+    pub fn get_staking_wallet(bytes: String) -> Option<StakingWallet> {
+        let v = hex::decode(bytes).map_err(|e| e.to_string()).ok()?;
+        let _bytes = vec_to_u832(v).ok()?;
+        WALLETS.with(|w| w.borrow().get(&_bytes))
     }
 
     pub fn get_staking_wallet_by_user_principal(principal: Principal) -> Vec<StakingWallet> {
@@ -64,12 +71,20 @@ impl WalletService {
         })
     }
 
-    pub fn remove_staking_wallet(bytes: [u8; 32]) -> Option<StakingWallet> {
-        WALLETS.with(|w| w.borrow_mut().remove(&bytes))
+    pub fn remove_staking_wallet(bytes: String) -> Option<StakingWallet> {
+        let v = hex::decode(bytes).map_err(|e| e.to_string()).ok()?;
+        let _bytes = vec_to_u832(v).ok()?;
+        WALLETS.with(|w| w.borrow_mut().remove(&_bytes))
     }
 
-    pub fn update_staking_wallet(wallet: StakingWallet) -> Option<StakingWallet> {
-        WALLETS.with(|w| w.borrow_mut().insert(wallet.bytes, wallet.clone()))
+    pub fn update_staking_wallet(wallet: StakingWallet) -> Result<(), String> {
+        let _bytes = vec_to_u832(wallet.bytes.to_vec())?;
+        let found = Self::get_staking_wallet(hex::encode(_bytes.clone()));
+        if found.is_none() {
+            return Err("Wallet not found".to_string());
+        }
+        WALLETS.with(|w| w.borrow_mut().insert(_bytes.clone(), wallet.clone()));
+        Ok(())
     }
 }
 

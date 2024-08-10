@@ -182,6 +182,15 @@ pub struct StakingWallet {
     pub bytes: [u8; 32],
 }
 
+#[derive(CandidType, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]
+pub struct StakingWalletReq {
+    pub user_principal: Principal,
+    pub user_btc_address: String,
+    pub stake_target: StakingTarget,
+    pub stake_address: String,
+    pub bytes: String,
+}
+
 impl Storable for StakingWallet {
     fn to_bytes(&self) -> Cow<[u8]> {
         Cow::Owned(Encode!(self).unwrap())

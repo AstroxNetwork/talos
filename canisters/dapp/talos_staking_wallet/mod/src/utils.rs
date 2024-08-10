@@ -53,3 +53,15 @@ pub fn get_script_from_address(address: String) -> Result<AddressInfo, String> {
         address_type,
     })
 }
+
+pub(crate) fn vec_to_u832(req: Vec<u8>) -> Result<[u8; 32], String> {
+    if req.len() != 32 {
+        return Err("Salt length should be 32".to_string());
+    }
+    let mut salt_bytes = [0u8; 32];
+
+    for i in 0..32 {
+        salt_bytes[i] = req[i.clone()]
+    }
+    Ok(salt_bytes.clone())
+}

@@ -14,7 +14,7 @@ use candid::candid_method;
 use candid::Principal;
 use ic_cdk::caller;
 use ic_cdk_macros::*;
-
+use talos_staking_wallet_mod::service::WalletService;
 // ------------------
 //
 // **Project dependencies
@@ -22,6 +22,7 @@ use ic_cdk_macros::*;
 // ------------------
 // injected macros
 use talos_staking_wallet_mod::state::*;
+use talos_types::types::{StakingWallet, StakingWalletCreateReq, StakingWalletReq};
 
 // ------------------
 //
@@ -59,8 +60,43 @@ pub fn who_am_i() -> Principal {
 }
 
 #[cfg(not(feature = "no_candid"))]
-#[update(name = "testUnwrap")]
-#[candid_method(update, rename = "testUnwrap")]
-pub fn test_unwrap(killer: Option<Principal>) -> String {
-    killer.unwrap().to_string()
+#[update(name = "create_staking_wallet", guard = "owner_guard")]
+#[candid_method(update, rename = "create_staking_wallet")]
+pub async fn create_staking_wallet(req: StakingWalletCreateReq) -> Result<StakingWallet, String> {
+    WalletService::create_staking_wallet(req).await
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[query(name = "get_staking_wallet", guard = "owner_guard")]
+#[candid_method(query, rename = "get_staking_wallet")]
+pub fn get_staking_wallet(bytes: String) -> Option<StakingWallet> {
+    WalletService::get_staking_wallet(bytes)
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[query(name = "get_staking_wallet_by_principal", guard = "owner_guard")]
+#[candid_method(query, rename = "get_staking_wallet_by_principal")]
+pub fn get_staking_wallet_by_principal(principal: Principal) -> Vec<StakingWallet> {
+    WalletService::get_staking_wallet_by_user_principal(principal)
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[query(name = "get_staking_wallet_by_btc_address", guard = "owner_guard")]
+#[candid_method(query, rename = "get_staking_wallet_by_btc_address")]
+pub fn get_staking_wallet_by_btc_address(user_btc_address: String) -> Vec<StakingWallet> {
+    WalletService::get_staking_wallet_by_user_btc_wallet(user_btc_address)
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[update(name = "remove_staking_wallet", guard = "owner_guard")]
+#[candid_method(update, rename = "remove_staking_wallet")]
+pub fn remove_staking_wallet(bytes: String) {
+    WalletService::remove_staking_wallet(bytes);
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[update(name = "update_staking_wallet", guard = "owner_guard")]
+#[candid_method(update, rename = "update_staking_wallet")]
+pub fn update_staking_wallet(wallet: StakingWallet) -> Result<(), String> {
+    WalletService::update_staking_wallet(wallet)
 }

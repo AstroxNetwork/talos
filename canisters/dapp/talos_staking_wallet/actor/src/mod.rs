@@ -10,6 +10,8 @@ use ego_types::app_info::AppInfo;
 use std::collections::BTreeMap;
 #[allow(unused_imports)]
 use talos_staking_wallet_mod::types::*;
+#[allow(unused_imports)]
+use talos_types::types::*;
 
 candid::export_service!();
 

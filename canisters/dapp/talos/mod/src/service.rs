@@ -4,7 +4,8 @@ use crate::memory::{
     PRINCIPAL_USER, RUNES_ORDERS,
 };
 use crate::types::{
-    BtreeKey, BtreeValue, OracleOrder, OracleOrderSave, OracleResponse, TalosSetting, UserAddress,
+    BtreeKey, BtreeValue, OracleOrder, OracleOrderKey, OracleOrderSave, OracleResponse,
+    TalosSetting, UserAddress,
 };
 use crate::utils::{new_order_id, vec_to_u832};
 use candid::{CandidType, Encode, Principal};
@@ -245,7 +246,11 @@ impl TalosService {
                     let first = price[0].clone();
                     ORACLE_ORDERS.with(|o| {
                         o.borrow_mut().insert(
-                            first.clone().ts,
+                            OracleOrderKey(format!(
+                                "{}/{}",
+                                first.clone().ts.to_string(),
+                                runes_id
+                            )),
                             OracleOrderSave {
                                 price: first.clone().price.to_string(),
                                 token: first.clone().token,

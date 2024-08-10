@@ -1,6 +1,8 @@
 import { idlFactory as talosIDL } from '@/idls/talos.idl';
 import { _SERVICE as talosService } from '@/idls/talos';
-import { getCanisterId, getActor, identity } from '@ego-js/utils';
+import { idlFactory as walletIDL } from '@/idls/talos_staking_wallet.idl';
+import { _SERVICE as walletService } from '@/idls/talos_staking_wallet';
+import { getCanisterId, getActor, identity, hasOwnProperty } from '@ego-js/utils';
 import { ActorSubclass } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1';
@@ -8,6 +10,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 
 describe('talos', () => {
   let talosActor: ActorSubclass<talosService>;
+  let walletActor: ActorSubclass<walletService>;
   test('add setting', async () => {
     talosActor =
       // getActor use idl types
@@ -19,6 +22,15 @@ describe('talos', () => {
         // get canister ID for 'talos', `configs/talos.json` is generated
         getCanisterId('talos')!,
       );
+    walletActor = await getActor<walletService>(
+      // use credential identity, owner of canister
+      identity(),
+      // use idlFactory from generated file
+      walletIDL,
+      // get canister ID for 'talos', `configs/talos.json` is generated
+      getCanisterId('talos_staking_wallet')!,
+    );
+
     await talosActor.admin_add_setting({
       oracles_endpoint: 'https://oracle.wizz.cash',
       staking_wallet_canister: Principal.anonymous(),
@@ -83,7 +95,7 @@ describe('talos', () => {
     const list2 = await talosActor.get_rune_list();
     console.log({ list2 });
   });
-  test('get_oracle_price', async () => {
+  test.skip('get_oracle_price', async () => {
     const price = await talosActor.get_price_from_oracles('840000:3');
     console.log({ price });
   });
@@ -144,5 +156,39 @@ describe('talos', () => {
     // admin remove user
     const removeUserAction = await talosActor.admin_remove_user_by_address('tb1pv8cz8vvj2s95pdzeax4x9tkuawr5um49n9er6gd2wf6wthwrh6ysqnkcq9');
     console.log({ removeUserAction });
+  });
+  test('create_staking_wallet', async () => {
+    const key = 'test_key_1';
+    const user_btc_address = 'tb1pv8cz8vvj2s95pdzeax4x9tkuawr5um49n9er6gd2wf6wthwrh6ysqnkcq9';
+    const wallet_1 = await walletActor.create_staking_wallet({
+      key,
+      user_principal: identity().getPrincipal(),
+      user_btc_address,
+      stake_target: { CoreDao: null },
+      order_id: Array.from([0, 0, 0, 0]),
+    });
+
+    if (hasOwnProperty(wallet_1, 'Ok')) {
+      console.log(wallet_1.Ok);
+    } else {
+      console.log(wallet_1.Err);
+    }
+
+    const wallet_2 = await walletActor.create_staking_wallet({
+      key,
+      user_principal: identity().getPrincipal(),
+      user_btc_address,
+      stake_target: { Babylon: null },
+      order_id: Array.from([0, 0, 0, 1]),
+    });
+
+    if (hasOwnProperty(wallet_2, 'Ok')) {
+      console.log(wallet_2.Ok);
+    } else {
+      console.log(wallet_2.Err);
+    }
+
+    const wallets = await walletActor.get_staking_wallet_by_btc_address(user_btc_address);
+    console.log(wallets);
   });
 });

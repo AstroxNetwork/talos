@@ -213,6 +213,24 @@ pub struct OracleOrderSave {
     pub price: String,
 }
 
+#[derive(CandidType, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Clone)]
+pub struct OracleOrderKey(pub String);
+
+impl Storable for OracleOrderKey {
+    fn to_bytes(&self) -> Cow<[u8]> {
+        self.0.to_bytes()
+    }
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Self {
+        Self(String::from_bytes(bytes))
+    }
+
+    const BOUND: Bound = Bound::Bounded {
+        max_size: 128,
+        is_fixed_size: false,
+    };
+}
+
 impl Storable for OracleOrderSave {
     fn to_bytes(&self) -> Cow<[u8]> {
         Cow::Owned(Encode!(self).unwrap())

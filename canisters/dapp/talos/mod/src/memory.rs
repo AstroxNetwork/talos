@@ -59,7 +59,7 @@ thread_local! {
         RefCell::new(StableBTreeMap::init(mm.borrow().get(BTC_ORDER)))
     });
 
-    pub static ORACLE_ORDERS: RefCell<StableBTreeMap<u64, OracleOrderSave, VM>> = MEMORY_MANAGER.with(|mm| {
+    pub static ORACLE_ORDERS: RefCell<StableBTreeMap<OracleOrderKey, OracleOrderSave, VM>> = MEMORY_MANAGER.with(|mm| {
         RefCell::new(StableBTreeMap::init(mm.borrow().get(ORACLE_ORDER)))
     });
     pub static CACHES: RefCell<StableBTreeMap<u64, CachedPayload, VM>> = MEMORY_MANAGER.with(|mm| {
