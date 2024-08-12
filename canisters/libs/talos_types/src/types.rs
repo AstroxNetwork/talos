@@ -179,6 +179,7 @@ pub struct StakingWallet {
     pub stake_target: StakingTarget,
     pub stake_address: String,
     pub bytes: [u8; 32],
+    pub pub_key_hex: String,
 }
 
 #[derive(CandidType, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]

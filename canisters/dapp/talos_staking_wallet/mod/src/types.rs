@@ -1,5 +1,5 @@
-use std::borrow::Cow;
-
+use bitcoin::hashes::Hash;
+use bitcoin::Txid;
 use candid::CandidType;
 use candid::{Decode, Encode};
 use ego_types::app_info::AppInfo;
@@ -8,6 +8,7 @@ use ego_types::user::User;
 use ic_stable_structures::storable::Bound;
 use ic_stable_structures::Storable;
 use serde::{Deserialize, Serialize};
+use std::borrow::Cow;
 
 #[allow(dead_code)]
 const MAX_STATE_SIZE: u32 = 2 * 1024 * 1024;
@@ -135,6 +136,79 @@ impl Storable for BtreeValue {
 
     const BOUND: Bound = Bound::Bounded {
         max_size: 64 * 2,
+        is_fixed_size: false,
+    };
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone)]
+pub struct CreateCoreDaoTxReq {
+    pub wallet_id: String,
+    pub stake_amount: u64,
+    pub txid: String,
+    pub vout: u32,
+    pub value: u64,
+    pub stake_lock_time: u32,
+    pub key_string: String,
+    pub export_psbt: bool,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone)]
+pub struct SignedTx {
+    pub(crate) tx_hex: String,
+    pub(crate) psbt_b64: Option<String>,
+    pub(crate) txid: String,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Clone)]
+pub enum TxType {
+    Lock,
+    Transfer,
+    Deposit,
+    Withdraw,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Clone)]
+pub enum TxState {
+    Stashed,
+    Pending(u64),   // broadcast time
+    Confirmed(u64), // confirmed blockheight
+}
+
+pub type TxID = [u8; 32];
+
+#[derive(CandidType, Serialize, Deserialize, Ord, PartialOrd, Eq, PartialEq, Clone)]
+pub struct TxDetail {
+    pub tx_type: TxType,
+    pub txid: String,
+    pub tx_bytes: Vec<u8>,
+    pub tx_state: TxState,
+    pub wallet_id: String,
+    pub lock_time: u32,
+}
+
+impl TxDetail {
+    pub fn get_txid(&self) -> TxID {
+        let mut txid = [0u8; 32];
+        txid.copy_from_slice(
+            &Txid::from_slice(&hex::decode(self.txid.clone()).unwrap())
+                .unwrap()
+                .as_ref(),
+        );
+        txid
+    }
+}
+
+impl Storable for TxDetail {
+    // serialize the struct to bytes
+    fn to_bytes(&self) -> Cow<[u8]> {
+        Cow::Owned(Encode!(self).unwrap())
+    }
+
+    fn from_bytes(bytes: Cow<[u8]>) -> Self {
+        Decode!(bytes.as_ref(), Self).unwrap()
+    }
+    const BOUND: Bound = Bound::Bounded {
+        max_size: MAX_USER_WALLET_SIZE,
         is_fixed_size: false,
     };
 }

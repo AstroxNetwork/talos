@@ -59,6 +59,27 @@ pub async fn sign(
         signature_hex: hex::encode(response.signature),
     })
 }
+
+pub async fn sign_pre_hash(
+    message_hash: Vec<u8>,
+    derivation_path_bytes: Vec<u8>,
+    key: EcdsaKeyIds,
+) -> Result<SignatureReply, String> {
+    let request = SignWithEcdsaArgument {
+        message_hash,
+        derivation_path: vec![derivation_path_bytes],
+        key_id: key.to_key_id(),
+    };
+
+    let (response,) = sign_with_ecdsa(request)
+        .await
+        .map_err(|e| format!("sign_with_ecdsa failed {}", e.1))?;
+
+    Ok(SignatureReply {
+        signature_hex: hex::encode(response.signature),
+    })
+}
+
 //
 // pub async fn verify(
 //     signature_hex: String,

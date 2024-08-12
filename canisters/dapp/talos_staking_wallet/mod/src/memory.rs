@@ -10,6 +10,7 @@ use std::cell::RefCell;
 use talos_types::types::StakingWallet;
 
 const USER_WALLET_MEM_ID: MemoryId = MemoryId::new(1);
+const TX_MEM_ID: MemoryId = MemoryId::new(2);
 
 const UPGRADES: MemoryId = MemoryId::new(3);
 
@@ -29,6 +30,10 @@ thread_local! {
 
     pub static WALLETS: RefCell<StableBTreeMap<[u8;32], StakingWallet, VM>> = MEMORY_MANAGER.with(|mm| {
         RefCell::new(StableBTreeMap::init(mm.borrow().get(USER_WALLET_MEM_ID)))
+    });
+
+    pub static TXS: RefCell<StableBTreeMap<TxID, TxDetail, VM>> = MEMORY_MANAGER.with(|mm| {
+        RefCell::new(StableBTreeMap::init(mm.borrow().get(TX_MEM_ID)))
     });
 
     pub static BTREES: RefCell<StableBTreeMap<BtreeKey, BtreeValue, VM>> = RefCell::new(StableBTreeMap::init(get_btree_memory()));

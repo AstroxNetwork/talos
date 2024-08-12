@@ -6,14 +6,14 @@
 // BTreeMap
 use std::collections::BTreeMap;
 
-// ego_macros
-use ego_macros::{inject_app_info_api, inject_ego_api};
-
 // ic_cdk
 use candid::candid_method;
 use candid::Principal;
+// ego_macros
+use ego_macros::{inject_app_info_api, inject_ego_api};
 use ic_cdk::caller;
 use ic_cdk_macros::*;
+
 use talos_staking_wallet_mod::service::WalletService;
 // ------------------
 //
@@ -22,7 +22,8 @@ use talos_staking_wallet_mod::service::WalletService;
 // ------------------
 // injected macros
 use talos_staking_wallet_mod::state::*;
-use talos_types::types::{StakingWallet, StakingWalletCreateReq, StakingWalletReq};
+use talos_staking_wallet_mod::types::{CreateCoreDaoTxReq, SignedTx};
+use talos_types::types::{StakingWallet, StakingWalletCreateReq};
 
 // ------------------
 //
@@ -99,4 +100,38 @@ pub fn remove_staking_wallet(bytes: String) {
 #[candid_method(update, rename = "update_staking_wallet")]
 pub fn update_staking_wallet(wallet: StakingWallet) -> Result<(), String> {
     WalletService::update_staking_wallet(wallet)
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[update(name = "create_core_dao_tx", guard = "owner_guard")]
+#[candid_method(update, rename = "create_core_dao_tx")]
+pub async fn create_core_dao_tx(req: CreateCoreDaoTxReq) -> Result<(SignedTx, SignedTx), String> {
+    WalletService::create_and_sign_core_dao_tx(
+        req.wallet_id,
+        req.stake_amount,
+        req.txid,
+        req.vout,
+        req.value,
+        req.stake_lock_time,
+        req.key_string,
+        req.export_psbt,
+    )
+    .await
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[update(name = "create_core_dao_tx_unlock", guard = "owner_guard")]
+#[candid_method(update, rename = "create_core_dao_tx_unlock")]
+pub async fn create_core_dao_tx_unlock(req: CreateCoreDaoTxReq) -> Result<SignedTx, String> {
+    WalletService::create_and_sign_core_dao_tx_unlock(
+        req.wallet_id,
+        req.stake_amount,
+        req.txid,
+        req.vout,
+        req.value,
+        req.stake_lock_time,
+        req.key_string,
+        req.export_psbt,
+    )
+    .await
 }
