@@ -317,7 +317,10 @@ mod test {
     use crate::core_dao::{u16_to_u82, u8_to_u81, CoreDao, CoreOption};
     use bitcoin::absolute::{Height, LockTime, Time};
     use bitcoin::consensus::Decodable;
-    use bitcoin::{OutPoint, ScriptBuf, Sequence, Transaction, TxIn, Witness};
+    use bitcoin::key::{Secp256k1, XOnlyPublicKey};
+    use bitcoin::{
+        opcodes, script, Address, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, Witness,
+    };
     use std::io::Cursor;
     use std::str::FromStr;
 
@@ -405,5 +408,44 @@ mod test {
         let lock_time = 1723332363u32;
         let lt = LockTime::from_time(lock_time).unwrap();
         println!("locktime len {}", lock_time.to_be_bytes().len())
+    }
+
+    #[test]
+    pub fn test_composing_script() {
+        let staker =
+            hex::decode("afee55a2cdcb6c47a593d629b04e13399354d348a3d84ad19310e2b6396e7237")
+                .unwrap();
+
+        let xonly = XOnlyPublicKey::from_slice(staker.as_slice()).unwrap();
+        let pubkey = bitcoin::PublicKey::from_slice(
+            hex::decode("02afee55a2cdcb6c47a593d629b04e13399354d348a3d84ad19310e2b6396e7237")
+                .unwrap()
+                .as_slice(),
+        )
+        .unwrap();
+        let wpubkey_hash = pubkey.wpubkey_hash().unwrap();
+
+        let s = script::Builder::new()
+            .push_opcode(opcodes::all::OP_IF)
+            .push_x_only_key(&xonly)
+            .push_opcode(opcodes::all::OP_CHECKSIG)
+            .push_opcode(opcodes::all::OP_ELSE)
+            .push_opcode(opcodes::all::OP_HASH160)
+            .push_slice(&wpubkey_hash.clone())
+            .push_opcode(opcodes::all::OP_EQUALVERIFY)
+            .push_opcode(opcodes::all::OP_CHECKSIG)
+            .push_opcode(opcodes::all::OP_ENDIF)
+            .into_script();
+
+        println!("script {:?}", s.to_asm_string());
+
+        let secp = Secp256k1::new();
+
+        let _new_script_buf = s.to_v1_p2tr(&secp, xonly);
+
+        println!(
+            "p2tr_address {:?}",
+            Address::from_script(&_new_script_buf, bitcoin::Network::Testnet).unwrap()
+        );
     }
 }

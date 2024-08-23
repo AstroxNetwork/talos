@@ -8,9 +8,12 @@ use crate::types::{
     TalosSetting, UserAddress,
 };
 use crate::utils::{new_order_id, vec_to_u832};
-use candid::{CandidType, Encode, Principal};
+use candid::{CandidType, Encode, Nat, Principal};
+use ic_cdk::api::call::RejectionCode;
 use ic_stable_structures::storable::Blob;
 use ic_stable_structures::Storable;
+use icrc_ledger_types::icrc1::account::Account;
+use icrc_ledger_types::icrc1::transfer::{NumTokens, TransferArg, TransferError};
 use serde::Serialize;
 use serde_json::json;
 use std::str::FromStr;
@@ -428,5 +431,48 @@ impl TalosService {
         let setting = Self::get_setting().unwrap();
         let rewards = setting.lp_rewards_ratio * (blocks as f64) * (lp_amount as f64);
         rewards.floor() as u64
+    }
+
+    pub async fn transfer_lp_token(
+        wallet_id: [u8; 32],
+        ledger: Principal,
+        amount: u64,
+        to: Account,
+    ) -> Result<Nat, String> {
+        let amount = NumTokens::from(amount);
+        let arg = TransferArg {
+            from_subaccount: Some(wallet_id),
+            to,
+            amount: amount.clone(),
+            fee: None,
+            memo: None,
+            created_at_time: None,
+        };
+
+        ic_cdk::println!("transfer arg, {:?}", arg);
+
+        let call_result = ic_cdk::api::call::call(ledger, "icrc1_transfer", (arg.clone(),)).await
+            as Result<(Result<Nat, TransferError>,), (RejectionCode, String)>;
+
+        match call_result {
+            Ok(resp) => match resp.0 {
+                Ok(_resp) => Ok(_resp),
+                Err(msg) => {
+                    ic_cdk::println!(
+                        "{}",
+                        format!("Error calling transfer_lp_token msg: {}", msg)
+                    );
+                    Err(format!("Error calling transfer_lp_token msg: {}", msg))
+                }
+            },
+            Err((code, msg)) => {
+                ic_cdk::println!("{}", format!("call_result error msg: {}", msg));
+                let code = code as u16;
+                Err(format!(
+                    "Error calling transfer_lp_token code: {}, msg: {}",
+                    code, msg
+                ))
+            }
+        }
     }
 }

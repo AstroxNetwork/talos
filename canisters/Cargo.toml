@@ -4,8 +4,6 @@ members = [
     "dapp/talos/mod",
     "dapp/talos_staking_wallet/actor",
     "dapp/talos_staking_wallet/mod",
-    "dapp/talos_token/actor",
-    "dapp/talos_token/mod",
     "libs/ic_tss",
     "libs/ordinals",
     "libs/talos_types",
@@ -30,6 +28,7 @@ serde_cbor = "0.11.2"
 ic-ledger-types = "0.7.0"
 ic-stable-structures = "0.6.0"
 ic-certified-map = "0.4.0"
+icrc-ledger-types = "0.1.4"
 ciborium = "0.2.1"
 uuid = { version = "1.8.0", features = ["v8"] }
 
@@ -54,6 +53,7 @@ itertools = "0.11.0"
 mockall = "0.11.2"
 tokio = { version = "1.21.0", features = ["full"] }
 sha2 = "0.10.6"
+hyper = { version = "0.14.24", features = ["client", "http2", "tcp"] }
 
 multibase = "0.9.1"
 bitcoin = { version = "0.30.2", features = ["serde", "base64"] }

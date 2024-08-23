@@ -152,7 +152,7 @@ pub struct CreateCoreDaoTxReq {
     pub export_psbt: bool,
 }
 
-#[derive(CandidType, Serialize, Deserialize, Clone)]
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct SignedTx {
     pub(crate) tx_hex: String,
     pub(crate) psbt_b64: Option<String>,
