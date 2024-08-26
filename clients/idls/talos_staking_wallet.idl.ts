@@ -2,8 +2,11 @@ export const idlFactory = ({ IDL }) => {
   const CreateCoreDaoTxReq = IDL.Record({
     'key_string' : IDL.Text,
     'value' : IDL.Nat64,
+    'validator' : IDL.Text,
     'txid' : IDL.Text,
     'vout' : IDL.Nat32,
+    'delegator' : IDL.Text,
+    'chain_id' : IDL.Nat16,
     'stake_amount' : IDL.Nat64,
     'stake_lock_time' : IDL.Nat32,
     'wallet_id' : IDL.Text,

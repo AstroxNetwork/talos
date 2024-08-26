@@ -103,7 +103,7 @@ describe('talos', () => {
     console.log({ list2 });
   });
   test('get_oracle_price', async () => {
-    const price = await talosActor.get_price_from_oracles('840000:3');
+    const price = await talosActor.get_price_from_oracles('2584503:2');
     console.log({ price });
   });
 
@@ -233,6 +233,9 @@ describe('talos', () => {
       key_string: 'test_key_1',
       stake_amount: BigInt(1000),
       stake_lock_time: 1723365747,
+      chain_id: 1112,
+      delegator: '0x0000000000000000000000000000000000000000',
+      validator: '0x0000000000000000000000000000000000000000',
       wallet_id,
       txid: 'fb283002b8862a11e891a40f26e4ec1f5d60708b7e5b7de144c12e65b054a411',
       vout: 1,

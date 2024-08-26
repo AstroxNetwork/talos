@@ -10,8 +10,11 @@ export interface AppInfo {
 export interface CreateCoreDaoTxReq {
   'key_string' : string,
   'value' : bigint,
+  'validator' : string,
   'txid' : string,
   'vout' : number,
+  'delegator' : string,
+  'chain_id' : number,
   'stake_amount' : bigint,
   'stake_lock_time' : number,
   'wallet_id' : string,

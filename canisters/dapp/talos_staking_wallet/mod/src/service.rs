@@ -104,6 +104,9 @@ impl WalletService {
         txid: String,
         vout: u32,
         value: u64,
+        chain_id: u16,
+        delegator: String,
+        validator: String,
         stake_lock_time: u32,
         key_string: String,
         export_psbt: bool,
@@ -119,9 +122,9 @@ impl WalletService {
 
         let option = CoreOption {
             version: 1,
-            chain_id: 1,
-            delegator: vec![0; 20],
-            validator: vec![0; 20],
+            chain_id,
+            delegator: hex::decode(delegator).map_err(|e| e.to_string())?,
+            validator: hex::decode(validator).map_err(|e| e.to_string())?,
             fee: 1,
             pub_key: wallet.pub_key_hex.clone(),
             lock_time: stake_lock_time.clone(),
