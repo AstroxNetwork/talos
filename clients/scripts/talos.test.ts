@@ -35,20 +35,20 @@ describe('talos', () => {
       getCanisterId('talos_staking_wallet')!,
     );
 
-    await talosActor.admin_add_setting({
-      oracles_endpoint: 'https://oracle.wizz.cash',
-      staking_wallet_canister: Principal.fromText(getCanisterId('talos_staking_wallet')!),
-      token_canister: Principal.anonymous(),
-      lp_rewards_ratio: 0.0001,
-    });
+    // await talosActor.admin_add_setting({
+    //   oracles_endpoint: 'https://oracle.wizz.cash',
+    //   staking_wallet_canister: Principal.fromText(getCanisterId('talos_staking_wallet')!),
+    //   token_canister: Principal.anonymous(),
+    //   lp_rewards_ratio: 0.0001,
+    // });
 
-    await walletActor.ego_owner_add(Principal.fromText(getCanisterId('talos')!));
+    // await walletActor.ego_owner_add(Principal.fromText(getCanisterId('talos')!));
 
-    const lp = await talosActor.get_btc_lp_reward(BigInt(1000), BigInt(100000));
-    console.log(lp);
+    // const lp = await talosActor.get_btc_lp_reward(BigInt(1000), BigInt(100000));
+    // console.log(lp);
 
-    const who = await talosActor.whoAmI();
-    console.log(who);
+    // const who = await talosActor.whoAmI();
+    // console.log(who);
   });
   test.skip('register', async () => {
     let userIdentity = Secp256k1KeyIdentity.generate();
@@ -102,12 +102,12 @@ describe('talos', () => {
     const list2 = await talosActor.get_rune_list();
     console.log({ list2 });
   });
-  test.skip('get_oracle_price', async () => {
+  test('get_oracle_price', async () => {
     const price = await talosActor.get_price_from_oracles('840000:3');
     console.log({ price });
   });
 
-  test('create_runes_order', async () => {
+  test.skip('create_runes_order', async () => {
     // rune id
     const runesList = [
       { rune_name: 'WOO•HOO•KOO', rune_id: '2584503:2' },

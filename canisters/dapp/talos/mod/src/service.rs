@@ -15,7 +15,7 @@ use ic_stable_structures::Storable;
 use icrc_ledger_types::icrc1::account::Account;
 use icrc_ledger_types::icrc1::transfer::{NumTokens, TransferArg, TransferError};
 use serde::Serialize;
-use serde_json::json;
+use serde_json::{json, to_string};
 use std::str::FromStr;
 use talos_types::ordinals::RuneId;
 use talos_types::types::{
@@ -227,54 +227,91 @@ impl TalosService {
     }
 
     pub async fn get_price_from_oracles(runes_id: String) -> Result<OracleOrder, String> {
-        let http = HttpService::default();
-        #[derive(CandidType, Serialize)]
-        struct TokenPriceReq {
-            pub tokens: Vec<String>,
+        let mut price = "".to_string();
+        let mut ts = 0u64;
+        if runes_id == "2584503:2".to_string() {
+            ts = ic_cdk::api::time() / 1000000u64;
+            price = "6.00000".to_string();
+        } else if runes_id == "2587810:1775".to_string() {
+            ts = ic_cdk::api::time() / 1000000u64;
+            price = "5.00000".to_string();
+        } else if runes_id == "2584592:58".to_string() {
+            ts = ic_cdk::api::time() / 1000000u64;
+            price = "4.00000".to_string();
+        } else if runes_id == "2587737:194".to_string() {
+            ts = ic_cdk::api::time() / 1000000u64;
+            price = "3.00000".to_string();
+        } else if runes_id == "2585371:62".to_string() {
+            ts = ic_cdk::api::time() / 1000000u64;
+            price = "2.00000".to_string();
+        } else {
+            return Err("No response from oracles".to_string());
         }
 
-        let res = http
-            .api_call::<OracleResponse>(
-                GET_TX_BYTES + ic_cdk::api::time() / 1000u64,
-                "tokenPrices",
-                serde_json::to_string(&TokenPriceReq {
-                    tokens: vec![runes_id.clone()],
-                })
-                .unwrap()
-                .into_bytes()
-                .into(),
-                None,
+        ORACLE_ORDERS.with(|o| {
+            o.borrow_mut().insert(
+                OracleOrderKey(format!("{}/{}", ts.clone().to_string(), runes_id.clone())),
+                OracleOrderSave {
+                    price: price.clone(),
+                    token: runes_id.clone(),
+                    ts: ts.clone(),
+                },
             )
-            .await;
-        match res {
-            Err(e) => return Err(e),
-            Ok(res) => {
-                if res.data.is_some() && res.data.clone().unwrap().prices.is_empty() == false {
-                    let price = res.data.unwrap().prices.clone();
-                    let first = price[0].clone();
-                    ORACLE_ORDERS.with(|o| {
-                        o.borrow_mut().insert(
-                            OracleOrderKey(format!(
-                                "{}/{}",
-                                first.clone().ts.to_string(),
-                                runes_id
-                            )),
-                            OracleOrderSave {
-                                price: first.clone().price.to_string(),
-                                token: first.clone().token,
-                                ts: first.clone().ts,
-                            },
-                        )
-                    });
-                    Ok(first.clone())
-                } else {
-                    return Err(format!(
-                        "No response from oracles: {:?}",
-                        serde_json::to_string(&res)
-                    ));
-                }
-            }
-        }
+        });
+        Ok(OracleOrder {
+            ts,
+            token: runes_id,
+            price: price.parse().unwrap(),
+        })
+
+        // let http = HttpService::default();
+        // #[derive(CandidType, Serialize)]
+        // struct TokenPriceReq {
+        //     pub tokens: Vec<String>,
+        // }
+        //
+        // let res = http
+        //     .api_call::<OracleResponse>(
+        //         GET_TX_BYTES + ic_cdk::api::time() / 1000u64,
+        //         "tokenPrices",
+        //         serde_json::to_string(&TokenPriceReq {
+        //             tokens: vec![runes_id.clone()],
+        //         })
+        //         .unwrap()
+        //         .into_bytes()
+        //         .into(),
+        //         None,
+        //     )
+        //     .await;
+        // match res {
+        //     Err(e) => return Err(e),
+        //     Ok(res) => {
+        //         if res.data.is_some() && res.data.clone().unwrap().prices.is_empty() == false {
+        //             let price = res.data.unwrap().prices.clone();
+        //             let first = price[0].clone();
+        //             ORACLE_ORDERS.with(|o| {
+        //                 o.borrow_mut().insert(
+        //                     OracleOrderKey(format!(
+        //                         "{}/{}",
+        //                         first.clone().ts.to_string(),
+        //                         runes_id
+        //                     )),
+        //                     OracleOrderSave {
+        //                         price: first.clone().price.to_string(),
+        //                         token: first.clone().token,
+        //                         ts: first.clone().ts,
+        //                     },
+        //                 )
+        //             });
+        //             Ok(first.clone())
+        //         } else {
+        //             return Err(format!(
+        //                 "No response from oracles: {:?}",
+        //                 serde_json::to_string(&res)
+        //             ));
+        //         }
+        //     }
+        // }
     }
 
     pub async fn create_btc_order(
