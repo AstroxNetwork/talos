@@ -388,6 +388,17 @@ impl TalosService {
         Ok(res)
     }
 
+    pub fn get_btc_order_by_id(order_id: String) -> Result<UserStakedBTC, String> {
+        let order_id_bytes = hex::decode(order_id.clone()).map_err(|e| e.to_string())?;
+        let order_id_u84 = vec_to_u84(order_id_bytes)?;
+        let order = BTC_ORDERS.with(|m| m.borrow().get(&order_id_u84));
+        if order.is_none() {
+            Err("Order not found".to_string())
+        } else {
+            Ok(order.unwrap())
+        }
+    }
+
     pub fn get_user_btc_orders(caller: &Principal) -> Result<Vec<UserStakedBTC>, String> {
         let user = Self::get_user(&caller)?;
         if user.status == UserStatus::Blocked {

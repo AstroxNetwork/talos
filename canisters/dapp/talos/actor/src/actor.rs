@@ -374,21 +374,10 @@ pub async fn get_price_from_oracles(rune_id: String) -> Result<OracleOrder, Stri
 #[update(name = "set_btc_order_status")]
 #[candid_method(update, rename = "set_btc_order_status")]
 pub async fn set_btc_order_status(order_id: String, status: StakeStatus) -> Result<(), String> {
-    let caller = caller();
-    match TalosService::get_user_btc_orders(&caller) {
-        Ok(r) => {
-            let found = r
-                .iter()
-                .find(|&v| hex::encode(v.stake_payload.id) == order_id)
-                .map(|v| v.clone());
-            if found.is_none() {
-                Err("Can not find order_id".to_string())
-            } else {
-                let order_id_bytes = hex::decode(order_id)
-                    .map_err(|_| "Cannot convert order to bytes".to_string())?;
-                TalosService::set_user_btc_order_status(order_id_bytes, status)
-            }
-        }
-        Err(e) => Err(e),
+    let order_id_bytes =
+        hex::decode(order_id.clone()).map_err(|_| "Cannot convert order to bytes".to_string())?;
+    match TalosService::get_btc_order_by_id(order_id.clone()) {
+        Ok(_) => TalosService::set_user_btc_order_status(order_id_bytes, status),
+        Err(_) => Err("Order not found".to_string()),
     }
 }
