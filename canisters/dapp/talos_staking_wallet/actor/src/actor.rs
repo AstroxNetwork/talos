@@ -22,7 +22,7 @@ use talos_staking_wallet_mod::service::WalletService;
 // ------------------
 // injected macros
 use talos_staking_wallet_mod::state::*;
-use talos_staking_wallet_mod::types::{CreateCoreDaoTxReq, SignedTx};
+use talos_staking_wallet_mod::types::{CreateCoreDaoTxReq, CreateCoreDaoTxRes, SignedTx, TxDetail};
 use talos_types::types::{StakingWallet, StakingWalletCreateReq};
 
 // ------------------
@@ -105,7 +105,7 @@ pub fn update_staking_wallet(wallet: StakingWallet) -> Result<(), String> {
 #[cfg(not(feature = "no_candid"))]
 #[update(name = "create_core_dao_tx")]
 #[candid_method(update, rename = "create_core_dao_tx")]
-pub async fn create_core_dao_tx(req: CreateCoreDaoTxReq) -> Result<(SignedTx, SignedTx), String> {
+pub async fn create_core_dao_tx(req: CreateCoreDaoTxReq) -> Result<CreateCoreDaoTxRes, String> {
     WalletService::create_and_sign_core_dao_tx(
         req.wallet_id,
         req.stake_amount,
@@ -121,6 +121,13 @@ pub async fn create_core_dao_tx(req: CreateCoreDaoTxReq) -> Result<(SignedTx, Si
         req.export_psbt,
     )
     .await
+}
+
+#[cfg(not(feature = "no_candid"))]
+#[query(name = "get_core_txs_by_wallet_id")]
+#[candid_method(query, rename = "get_core_txs_by_wallet_id")]
+pub fn get_core_dao_txs_by_wallet_id(wallet_id: String) -> Vec<TxDetail> {
+    WalletService::get_txs_by_wallet_id(wallet_id)
 }
 
 #[cfg(not(feature = "no_candid"))]

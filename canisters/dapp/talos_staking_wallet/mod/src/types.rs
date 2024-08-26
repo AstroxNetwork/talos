@@ -156,6 +156,13 @@ pub struct CreateCoreDaoTxReq {
     pub export_psbt: bool,
 }
 
+#[derive(CandidType, Serialize, Deserialize, Clone)]
+pub struct CreateCoreDaoTxRes {
+    pub signed_tx_commit: SignedTx,
+    pub signed_tx_reveal: SignedTx,
+    pub redeem_script: Vec<u8>,
+}
+
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct SignedTx {
     pub(crate) tx_hex: String,

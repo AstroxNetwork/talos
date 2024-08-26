@@ -21,8 +21,13 @@ export interface CreateCoreDaoTxReq {
   'wallet_id' : string,
   'export_psbt' : boolean,
 }
+export interface CreateCoreDaoTxRes {
+  'signed_tx_commit' : SignedTx,
+  'signed_tx_reveal' : SignedTx,
+  'redeem_script' : Array<number>,
+}
 export interface LogEntry { 'ts' : bigint, 'msg' : string, 'kind' : string }
-export type Result = { 'Ok' : [SignedTx, SignedTx] } |
+export type Result = { 'Ok' : CreateCoreDaoTxRes } |
   { 'Err' : string };
 export type Result_1 = { 'Ok' : SignedTx } |
   { 'Err' : string };
@@ -62,6 +67,21 @@ export interface StakingWalletCreateReq {
   'stake_target' : StakingTarget,
   'order_id' : Array<number>,
 }
+export interface TxDetail {
+  'tx_bytes' : Array<number>,
+  'txid' : string,
+  'lock_time' : number,
+  'tx_type' : TxType,
+  'wallet_id' : string,
+  'tx_state' : TxState,
+}
+export type TxState = { 'Stashed' : null } |
+  { 'Confirmed' : bigint } |
+  { 'Pending' : bigint };
+export type TxType = { 'Withdraw' : null } |
+  { 'Lock' : null } |
+  { 'Deposit' : null } |
+  { 'Transfer' : null };
 export interface Version {
   'major' : number,
   'minor' : number,
@@ -103,6 +123,7 @@ export interface _SERVICE {
   'ego_user_list' : ActorMethod<[], Result_8>,
   'ego_user_remove' : ActorMethod<[Principal], Result_4>,
   'ego_user_set' : ActorMethod<[Array<Principal>], Result_4>,
+  'get_core_txs_by_wallet_id' : ActorMethod<[string], Array<TxDetail>>,
   'get_staking_wallet' : ActorMethod<[string], [] | [StakingWallet]>,
   'get_staking_wallet_by_btc_address' : ActorMethod<
     [string],

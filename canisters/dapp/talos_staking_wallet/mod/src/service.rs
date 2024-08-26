@@ -15,7 +15,7 @@ use talos_types::types::{StakingTarget, StakingWallet, StakingWalletCreateReq};
 
 use crate::core_dao::{CoreDao, CoreOption};
 use crate::memory::{TXS, WALLETS};
-use crate::types::{SignedTx, TxDetail, TxID, TxState, TxType};
+use crate::types::{CreateCoreDaoTxRes, SignedTx, TxDetail, TxID, TxState, TxType};
 use crate::utils::{get_script_from_address, vec_to_u832, AddressInfo};
 
 pub struct WalletService {}
@@ -111,7 +111,7 @@ impl WalletService {
         stake_lock_time: u32,
         key_string: String,
         export_psbt: bool,
-    ) -> Result<(SignedTx, SignedTx), String> {
+    ) -> Result<CreateCoreDaoTxRes, String> {
         let wallet = Self::get_staking_wallet(wallet_id.clone())
             .map_or_else(|| Err("Wallet not found".to_string()), |v| Ok(v))?;
 
@@ -138,6 +138,13 @@ impl WalletService {
 
         let psbt =
             core_dao.create_lock_tx(stake_amount.clone(), script_buf, txid.clone(), vout, value)?;
+
+        let redeem_script = core_dao.get_redeem_script();
+
+        if redeem_script.is_none() {
+            return Err("redeem script is not present".to_string());
+        }
+
         let res = sign_segwit0_tx(
             psbt,
             wallet.pub_key_hex.clone(),
@@ -195,7 +202,11 @@ impl WalletService {
                 .insert(tx_detail_unlock.get_txid(), tx_detail_unlock.clone())
         });
 
-        Ok((res.clone(), res_unlock.clone()))
+        Ok(CreateCoreDaoTxRes {
+            signed_tx_commit: res,
+            signed_tx_reveal: res_unlock,
+            redeem_script: redeem_script.unwrap().clone().to_bytes(),
+        })
     }
 
     pub async fn create_and_sign_core_dao_tx_unlock(

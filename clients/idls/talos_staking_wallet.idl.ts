@@ -18,10 +18,12 @@ export const idlFactory = ({ IDL }) => {
     'tx_hex' : IDL.Text,
     'psbt_b64' : IDL.Opt(IDL.Text),
   });
-  const Result = IDL.Variant({
-    'Ok' : IDL.Tuple(SignedTx, SignedTx),
-    'Err' : IDL.Text,
+  const CreateCoreDaoTxRes = IDL.Record({
+    'signed_tx_commit' : SignedTx,
+    'signed_tx_reveal' : SignedTx,
+    'redeem_script' : IDL.Vec(IDL.Nat8),
   });
+  const Result = IDL.Variant({ 'Ok' : CreateCoreDaoTxRes, 'Err' : IDL.Text });
   const Result_1 = IDL.Variant({ 'Ok' : SignedTx, 'Err' : IDL.Text });
   const StakingTarget = IDL.Variant({
     'CoreDao' : IDL.Null,
@@ -70,6 +72,25 @@ export const idlFactory = ({ IDL }) => {
   const Result_8 = IDL.Variant({
     'Ok' : IDL.Opt(IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Text))),
     'Err' : IDL.Text,
+  });
+  const TxType = IDL.Variant({
+    'Withdraw' : IDL.Null,
+    'Lock' : IDL.Null,
+    'Deposit' : IDL.Null,
+    'Transfer' : IDL.Null,
+  });
+  const TxState = IDL.Variant({
+    'Stashed' : IDL.Null,
+    'Confirmed' : IDL.Nat64,
+    'Pending' : IDL.Nat64,
+  });
+  const TxDetail = IDL.Record({
+    'tx_bytes' : IDL.Vec(IDL.Nat8),
+    'txid' : IDL.Text,
+    'lock_time' : IDL.Nat32,
+    'tx_type' : TxType,
+    'wallet_id' : IDL.Text,
+    'tx_state' : TxState,
   });
   return IDL.Service({
     'create_core_dao_tx' : IDL.Func([CreateCoreDaoTxReq], [Result], []),
@@ -120,6 +141,11 @@ export const idlFactory = ({ IDL }) => {
     'ego_user_list' : IDL.Func([], [Result_8], []),
     'ego_user_remove' : IDL.Func([IDL.Principal], [Result_4], []),
     'ego_user_set' : IDL.Func([IDL.Vec(IDL.Principal)], [Result_4], []),
+    'get_core_txs_by_wallet_id' : IDL.Func(
+        [IDL.Text],
+        [IDL.Vec(TxDetail)],
+        ['query'],
+      ),
     'get_staking_wallet' : IDL.Func(
         [IDL.Text],
         [IDL.Opt(StakingWallet)],

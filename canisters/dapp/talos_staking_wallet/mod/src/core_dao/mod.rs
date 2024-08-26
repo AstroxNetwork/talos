@@ -65,6 +65,10 @@ impl CoreDao {
         self.hash160 = Some(hash160);
     }
 
+    pub fn get_redeem_script(&self) -> Option<ScriptBuf> {
+        self.redeem_script.clone()
+    }
+
     pub fn construct(&mut self) -> (TxOut, ScriptBuf, ScriptBuf) {
         let pubkey = bitcoin::PublicKey::from_slice(
             hex::decode(self.option.pub_key.clone()).unwrap().as_slice(),
