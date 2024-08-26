@@ -301,6 +301,20 @@ impl WalletService {
                 .collect()
         })
     }
+
+    pub fn set_tx_state(txid: TxID, tx_state: TxState) -> Result<TxDetail, String> {
+        let tx = Self::get_tx_detail(txid);
+        if tx.is_none() {
+            Err("Tx not found".to_string())
+        } else {
+            let mut tx = tx.unwrap();
+            tx.tx_state = tx_state;
+            TXS.with(|t| {
+                t.borrow_mut().insert(txid, tx.clone());
+            });
+            Ok(tx)
+        }
+    }
 }
 
 pub fn create_bytes(stake_target: StakingTarget, order_id: [u8; 4], user: Principal) -> [u8; 32] {

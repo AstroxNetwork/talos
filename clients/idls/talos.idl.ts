@@ -79,6 +79,7 @@ export const idlFactory = ({ IDL }) => {
   const UserStakedBTC = IDL.Record({
     'status' : StakeStatus,
     'stake_target' : StakingTarget,
+    'create_time' : IDL.Nat64,
     'stake_payload' : StakePayload,
     'stake_amount' : IDL.Nat,
     'btc_address' : IDL.Text,
@@ -236,6 +237,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'get_user_btc_order' : IDL.Func([], [Result_3], ['query']),
     'get_user_runes_order' : IDL.Func([], [Result_4], ['query']),
+    'set_btc_order_status' : IDL.Func([IDL.Text, StakeStatus], [Result], []),
     'transform' : IDL.Func([TransformArgs], [HttpResponse], ['query']),
     'user_register' : IDL.Func([IDL.Text, BtcPubkey], [Result_2], []),
     'whoAmI' : IDL.Func([], [IDL.Opt(TalosUser)], ['query']),

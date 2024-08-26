@@ -121,6 +121,7 @@ export type UserStakeOrderType = { 'BTC' : StakingTarget } |
 export interface UserStakedBTC {
   'status' : StakeStatus,
   'stake_target' : StakingTarget,
+  'create_time' : bigint,
   'stake_payload' : StakePayload,
   'stake_amount' : bigint,
   'btc_address' : string,
@@ -206,6 +207,7 @@ export interface _SERVICE {
   'get_user_all_runes_orders' : ActorMethod<[[] | [string]], Result_4>,
   'get_user_btc_order' : ActorMethod<[], Result_3>,
   'get_user_runes_order' : ActorMethod<[], Result_4>,
+  'set_btc_order_status' : ActorMethod<[string, StakeStatus], Result>,
   'transform' : ActorMethod<[TransformArgs], HttpResponse>,
   'user_register' : ActorMethod<[string, BtcPubkey], Result_2>,
   'whoAmI' : ActorMethod<[], [] | [TalosUser]>,

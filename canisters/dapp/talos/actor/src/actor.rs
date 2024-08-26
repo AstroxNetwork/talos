@@ -31,7 +31,7 @@ use talos_mod::types::{
 use talos_mod::utils::vec_to_u84;
 use talos_types::ordinals::RuneId;
 use talos_types::types::{
-    BtcPubkey, TalosRunes, TalosUser, UserStakedBTC, UserStakedRunes, UserStatus,
+    BtcPubkey, StakeStatus, TalosRunes, TalosUser, UserStakedBTC, UserStakedRunes, UserStatus,
 };
 
 // ------------------
@@ -369,3 +369,26 @@ pub async fn get_price_from_oracles(rune_id: String) -> Result<OracleOrder, Stri
 // 创建core质押/core质押提交
 
 // 我的lp余额, 查ledger_canister
+
+#[cfg(not(feature = "no_candid"))]
+#[update(name = "set_btc_order_status")]
+#[candid_method(update, rename = "set_btc_order_status")]
+pub async fn set_btc_order_status(order_id: String, status: StakeStatus) -> Result<(), String> {
+    let caller = caller();
+    match TalosService::get_user_btc_orders(&caller) {
+        Ok(r) => {
+            let found = r
+                .iter()
+                .find(|&v| hex::encode(v.stake_payload.id) == order_id)
+                .map(|v| v.clone());
+            if found.is_none() {
+                Err("Can not find order_id".to_string())
+            } else {
+                let order_id_bytes = hex::decode(order_id)
+                    .map_err(|_| "Cannot convert order to bytes".to_string())?;
+                TalosService::set_user_btc_order_status(order_id_bytes, status)
+            }
+        }
+        Err(e) => Err(e),
+    }
+}

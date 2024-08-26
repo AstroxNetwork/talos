@@ -147,6 +147,7 @@ pub struct UserStakedBTC {
     pub status: StakeStatus,
     pub btc_address: String,
     pub stake_target: StakingTarget,
+    pub create_time: u64,
 }
 
 impl Storable for UserStakedBTC {

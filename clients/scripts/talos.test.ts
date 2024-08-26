@@ -35,20 +35,20 @@ describe('talos', () => {
       getCanisterId('talos_staking_wallet')!,
     );
 
-    // await talosActor.admin_add_setting({
-    //   oracles_endpoint: 'https://oracle.wizz.cash',
-    //   staking_wallet_canister: Principal.fromText(getCanisterId('talos_staking_wallet')!),
-    //   token_canister: Principal.anonymous(),
-    //   lp_rewards_ratio: 0.0001,
-    // });
+    await talosActor.admin_add_setting({
+      oracles_endpoint: 'https://oracle.wizz.cash',
+      staking_wallet_canister: Principal.fromText(getCanisterId('talos_staking_wallet')!),
+      token_canister: Principal.anonymous(),
+      lp_rewards_ratio: 0.0001,
+    });
 
-    // await walletActor.ego_owner_add(Principal.fromText(getCanisterId('talos')!));
+    await walletActor.ego_owner_add(Principal.fromText(getCanisterId('talos')!));
 
-    // const lp = await talosActor.get_btc_lp_reward(BigInt(1000), BigInt(100000));
-    // console.log(lp);
+    const lp = await talosActor.get_btc_lp_reward(BigInt(1000), BigInt(100000));
+    console.log(lp);
 
-    // const who = await talosActor.whoAmI();
-    // console.log(who);
+    const who = await talosActor.whoAmI();
+    console.log(who);
   });
   test.skip('register', async () => {
     let userIdentity = Secp256k1KeyIdentity.generate();
@@ -237,6 +237,7 @@ describe('talos', () => {
       delegator: '0x0000000000000000000000000000000000000000',
       validator: '0x0000000000000000000000000000000000000000',
       wallet_id,
+      reveal_fee: BigInt(300),
       txid: 'fb283002b8862a11e891a40f26e4ec1f5d60708b7e5b7de144c12e65b054a411',
       vout: 1,
       value: BigInt(700),
@@ -299,7 +300,7 @@ describe('talos', () => {
     console.log(expectedTx);
     console.log(tx.toHex() === expectedTx);
   });
-  test('omg2', async () => {
+  test.skip('omg2', async () => {
     const b64 =
       'cHNidP8BAFICAAAAARGkVLBlLsFE4X1bfotwYF0f7OQmD6SR6BEqhrgCMCj7AQAAAAD+////AbwCAAAAAAAAFgAUkmTl7N81YClmxPyqdzelX3OLJ+tzebhmAAEBK+gDAAAAAAAAIgAgqQEhkuPoWUESX7MrGKHJd84dnEhlEjzVznTOX1XhvKwiAgMC2S7XxbBCg4it4eXFKorIUUkFuO0yFrxn4zY/Vf2oj0cwRAIgY3xx1AmGRNdrGDgD3C1U14ztd9W7X4Y547kF/CbX6x0CIDqJ681xyvKUX8XUf2AH+JanlcHPOxC9TsjmHqxWx5UxAQEDBAEAAAABBSAEc3m4ZrF1dqkUkmTl7N81YClmxPyqdzelX3OLJ+uIrAEIjANHMEQCIGN8cdQJhkTXaxg4A9wtVNeM7XfVu1+GOeO5Bfwm1+sdAiA6ievNccrylF/F1H9gB/iWp5XBzzsQvU7I5h6sVseVMQEhAwLZLtfFsEKDiK3h5cUqishRSQW47TIWvGfjNj9V/aiPIARzebhmsXV2qRSSZOXs3zVgKWbE/Kp3N6Vfc4sn64isAAA=';
     const expectedTx =

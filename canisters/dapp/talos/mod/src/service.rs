@@ -7,7 +7,7 @@ use crate::types::{
     BtreeKey, BtreeValue, OracleOrder, OracleOrderKey, OracleOrderSave, OracleResponse,
     TalosSetting, UserAddress,
 };
-use crate::utils::{new_order_id, vec_to_u832};
+use crate::utils::{new_order_id, vec_to_u832, vec_to_u84};
 use candid::{CandidType, Encode, Nat, Principal};
 use ic_cdk::api::call::RejectionCode;
 use ic_stable_structures::storable::Blob;
@@ -348,6 +348,7 @@ impl TalosService {
             status: StakeStatus::Created,
             btc_address: user.btc_address.clone(),
             stake_target: staking_target.clone(),
+            create_time: ic_cdk::api::time(),
         };
         BTC_ORDERS.with(|m| {
             m.borrow_mut().insert(id.clone(), btc_order);
@@ -396,11 +397,30 @@ impl TalosService {
         let res = BTC_ORDERS.with(|m| {
             m.borrow()
                 .iter()
-                .filter(|f| f.1.btc_address == user.btc_address)
+                .filter(|f| {
+                    f.1.btc_address == user.btc_address
+                        && (f.1.status == StakeStatus::Locking
+                            || f.1.status == StakeStatus::Unlocked)
+                })
                 .map(|f| f.1.clone())
                 .collect::<Vec<UserStakedBTC>>()
         });
         Ok(res)
+    }
+
+    pub fn set_user_btc_order_status(order_id: Vec<u8>, status: StakeStatus) -> Result<(), String> {
+        let order_id_u84 = vec_to_u84(order_id.clone())?;
+        let order = BTC_ORDERS.with(|m| m.borrow().get(&order_id_u84));
+        if order.is_none() {
+            Err("Order not found".to_string())
+        } else {
+            let mut _order = order.unwrap();
+            _order.status = status;
+            BTC_ORDERS.with(|m| {
+                m.borrow_mut().insert(order_id_u84, _order);
+            });
+            Ok(())
+        }
     }
 
     pub fn get_all_runes_orders(
