@@ -61,14 +61,14 @@ pub fn who_am_i() -> Principal {
 }
 
 #[cfg(not(feature = "no_candid"))]
-#[update(name = "create_staking_wallet", guard = "owner_guard")]
+#[update(name = "create_staking_wallet")]
 #[candid_method(update, rename = "create_staking_wallet")]
 pub async fn create_staking_wallet(req: StakingWalletCreateReq) -> Result<StakingWallet, String> {
     WalletService::create_staking_wallet(req).await
 }
 
 #[cfg(not(feature = "no_candid"))]
-#[query(name = "get_staking_wallet", guard = "owner_guard")]
+#[query(name = "get_staking_wallet")]
 #[candid_method(query, rename = "get_staking_wallet")]
 pub fn get_staking_wallet(bytes: String) -> Option<StakingWallet> {
     WalletService::get_staking_wallet(bytes)
@@ -109,6 +109,7 @@ pub async fn create_core_dao_tx(req: CreateCoreDaoTxReq) -> Result<(SignedTx, Si
     WalletService::create_and_sign_core_dao_tx(
         req.wallet_id,
         req.stake_amount,
+        req.reveal_fee,
         req.txid,
         req.vout,
         req.value,
@@ -123,15 +124,19 @@ pub async fn create_core_dao_tx(req: CreateCoreDaoTxReq) -> Result<(SignedTx, Si
 }
 
 #[cfg(not(feature = "no_candid"))]
-#[update(name = "create_core_dao_tx_unlock", guard = "owner_guard")]
+#[update(name = "create_core_dao_tx_unlock")]
 #[candid_method(update, rename = "create_core_dao_tx_unlock")]
 pub async fn create_core_dao_tx_unlock(req: CreateCoreDaoTxReq) -> Result<SignedTx, String> {
     WalletService::create_and_sign_core_dao_tx_unlock(
         req.wallet_id,
         req.stake_amount,
+        req.reveal_fee,
         req.txid,
         req.vout,
         req.value,
+        req.chain_id,
+        req.delegator,
+        req.validator,
         req.stake_lock_time,
         req.key_string,
         req.export_psbt,

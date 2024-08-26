@@ -101,6 +101,7 @@ impl WalletService {
     pub async fn create_and_sign_core_dao_tx(
         wallet_id: String,
         stake_amount: u64,
+        reveal_fee: u64,
         txid: String,
         vout: u32,
         value: u64,
@@ -125,7 +126,7 @@ impl WalletService {
             chain_id,
             delegator: hex::decode(delegator).map_err(|e| e.to_string())?,
             validator: hex::decode(validator).map_err(|e| e.to_string())?,
-            fee: 1,
+            fee: 0,
             pub_key: wallet.pub_key_hex.clone(),
             lock_time: stake_lock_time.clone(),
             network,
@@ -167,7 +168,7 @@ impl WalletService {
             vout + 1,
             stake_lock_time.clone(),
             stake_amount.clone(),
-            stake_amount.clone() - 300,
+            stake_amount.clone() - reveal_fee.clone(),
             wallet.stake_address.clone(),
         )?;
         let res_unlock = sign_segwit0_tx_unlock(
@@ -200,9 +201,13 @@ impl WalletService {
     pub async fn create_and_sign_core_dao_tx_unlock(
         wallet_id: String,
         stake_amount: u64,
+        reveal_fee: u64,
         txid: String,
         vout: u32,
         value: u64,
+        chain_id: u16,
+        delegator: String,
+        validator: String,
         stake_lock_time: u32,
         key_string: String,
         export_psbt: bool,
@@ -214,10 +219,10 @@ impl WalletService {
 
         let option = CoreOption {
             version: 1,
-            chain_id: 1,
-            delegator: vec![0; 20],
-            validator: vec![0; 20],
-            fee: 1,
+            chain_id: chain_id.clone(),
+            delegator: hex::decode(delegator).map_err(|e| e.to_string())?,
+            validator: hex::decode(validator).map_err(|e| e.to_string())?,
+            fee: 0,
             pub_key: wallet.pub_key_hex.clone(),
             lock_time: stake_lock_time.clone(),
             network,
@@ -232,7 +237,7 @@ impl WalletService {
             txid.clone(),
             vout,
             stake_lock_time.clone(),
-            stake_amount.clone(),
+            stake_amount.clone() - reveal_fee.clone(),
             value.clone(), // should calculate it
             wallet.stake_address.clone(),
         )?;
@@ -849,16 +854,16 @@ mod test {
         println!("signed reveal_tx psbt bytes {:?}", reveal_psbt.to_string());
         let revealtx = reveal_psbt.extract_tx();
 
-        revealtx.verify(|_| {
-            Some(TxOut {
-                value: 1000,
-                script_pubkey: script_output.clone(),
-            })
-        });
-        println!(
-            "revealtx bytes {:?}",
-            consensus::encode::serialize_hex(&revealtx)
-        );
+        // revealtx.verify(|_| {
+        //     Some(TxOut {
+        //         value: 1000,
+        //         script_pubkey: script_output.clone(),
+        //     })
+        // });
+        // println!(
+        //     "revealtx bytes {:?}",
+        //     consensus::encode::serialize_hex(&revealtx)
+        // );
         let revealtx_id = revealtx.txid();
         println!("revealtx {:?}", revealtx.txid());
     }

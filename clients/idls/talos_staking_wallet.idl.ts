@@ -8,6 +8,7 @@ export const idlFactory = ({ IDL }) => {
     'delegator' : IDL.Text,
     'chain_id' : IDL.Nat16,
     'stake_amount' : IDL.Nat64,
+    'reveal_fee' : IDL.Nat64,
     'stake_lock_time' : IDL.Nat32,
     'wallet_id' : IDL.Text,
     'export_psbt' : IDL.Bool,

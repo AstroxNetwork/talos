@@ -144,6 +144,7 @@ impl Storable for BtreeValue {
 pub struct CreateCoreDaoTxReq {
     pub wallet_id: String,
     pub stake_amount: u64,
+    pub reveal_fee: u64,
     pub txid: String,
     pub vout: u32,
     pub value: u64,

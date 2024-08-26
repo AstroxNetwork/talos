@@ -443,6 +443,8 @@ mod test {
 
         let _new_script_buf = s.to_v1_p2tr(&secp, xonly);
 
+        println!("_new_script_buf: {:?}", _new_script_buf.to_bytes().len());
+
         println!(
             "p2tr_address {:?}",
             Address::from_script(&_new_script_buf, bitcoin::Network::Testnet).unwrap()

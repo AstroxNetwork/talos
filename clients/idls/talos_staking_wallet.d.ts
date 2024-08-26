@@ -16,6 +16,7 @@ export interface CreateCoreDaoTxReq {
   'delegator' : string,
   'chain_id' : number,
   'stake_amount' : bigint,
+  'reveal_fee' : bigint,
   'stake_lock_time' : number,
   'wallet_id' : string,
   'export_psbt' : boolean,
