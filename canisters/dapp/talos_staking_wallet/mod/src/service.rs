@@ -539,14 +539,14 @@ pub async fn sign_segwit0_tx_unlock(
     if psbt_b64 == true {
         _psbt = Some(psbt_to_sign.clone().to_string());
     }
-    return match err {
+    match err {
         Some(e) => Err(e),
         None => Ok(SignedTx {
             tx_hex: serialized_signed_tx,
             psbt_b64: _psbt,
             txid: signed_tx.txid().to_string(),
         }),
-    };
+    }
 }
 
 #[cfg(test)]

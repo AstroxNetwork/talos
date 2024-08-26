@@ -37,10 +37,12 @@ describe('talos', () => {
 
     // await talosActor.admin_add_setting({
     //   oracles_endpoint: 'https://oracle.wizz.cash',
-    //   staking_wallet_canister: Principal.anonymous(),
+    //   staking_wallet_canister: Principal.fromText(getCanisterId('talos_staking_wallet')!),
     //   token_canister: Principal.anonymous(),
     //   lp_rewards_ratio: 0.0001,
     // });
+
+    // await walletActor.ego_owner_add(Principal.fromText(getCanisterId('talos')!));
 
     // const lp = await talosActor.get_btc_lp_reward(BigInt(1000), BigInt(100000));
     // console.log(lp);

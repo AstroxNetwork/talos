@@ -24,11 +24,20 @@ export const idlFactory = ({ IDL }) => {
     'lock_time' : IDL.Nat32,
     'amount' : IDL.Nat,
   });
+  const StakingWallet = IDL.Record({
+    'user_principal' : IDL.Principal,
+    'user_btc_address' : IDL.Text,
+    'stake_address' : IDL.Text,
+    'stake_target' : StakingTarget,
+    'bytes' : IDL.Vec(IDL.Nat8),
+    'pub_key_hex' : IDL.Text,
+  });
   const UserStakeOrderType = IDL.Variant({
     'BTC' : StakingTarget,
     'Runes' : IDL.Null,
   });
   const UserStakeOrder = IDL.Record({
+    'staking_wallet' : IDL.Opt(StakingWallet),
     'order_type' : UserStakeOrderType,
     'order_id' : IDL.Text,
   });

@@ -8,7 +8,7 @@ use ego_types::user::User;
 use ic_stable_structures::storable::Bound;
 use ic_stable_structures::Storable;
 use serde::{Deserialize, Serialize};
-use talos_types::types::StakingTarget;
+use talos_types::types::{StakingTarget, StakingWallet};
 
 #[allow(dead_code)]
 const MAX_STATE_SIZE: u32 = 2 * 1024 * 1024;
@@ -184,6 +184,7 @@ pub enum UserStakeOrderType {
 pub struct UserStakeOrder {
     pub order_id: String,
     pub order_type: UserStakeOrderType,
+    pub staking_wallet: Option<StakingWallet>,
 }
 
 #[derive(CandidType, Serialize, Deserialize, Clone)]

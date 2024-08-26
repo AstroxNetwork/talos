@@ -81,6 +81,14 @@ export type StakeStatus = { 'Locking' : null } |
   { 'Created' : null };
 export type StakingTarget = { 'CoreDao' : null } |
   { 'Babylon' : null };
+export interface StakingWallet {
+  'user_principal' : Principal,
+  'user_btc_address' : string,
+  'stake_address' : string,
+  'stake_target' : StakingTarget,
+  'bytes' : Array<number>,
+  'pub_key_hex' : string,
+}
 export interface TalosRunes {
   'runes_status' : RunesStatus,
   'min_stake' : bigint,
@@ -103,6 +111,7 @@ export interface TransformArgs {
   'response' : HttpResponse,
 }
 export interface UserStakeOrder {
+  'staking_wallet' : [] | [StakingWallet],
   'order_type' : UserStakeOrderType,
   'order_id' : string,
 }

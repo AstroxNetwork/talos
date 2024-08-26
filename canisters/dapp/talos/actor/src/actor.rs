@@ -166,21 +166,24 @@ pub fn admin_create_runes_order(
     Ok(UserStakeOrder {
         order_id: hex::encode(order),
         order_type: UserStakeOrderType::Runes,
+        staking_wallet: None,
     })
 }
 
 #[cfg(not(feature = "no_candid"))]
 #[update(name = "admin_create_btc_order", guard = "owner_guard")]
 #[candid_method(update, rename = "admin_create_btc_order")]
-pub fn admin_create_btc_order(
+pub async fn admin_create_btc_order(
     principal: Principal,
     req: CreateStakeBTCReq,
 ) -> Result<UserStakeOrder, String> {
-    let order =
-        TalosService::create_btc_order(&principal, req.lock_time, req.amount, req.target.clone())?;
+    let (order, staking_wallet) =
+        TalosService::create_btc_order(&principal, req.lock_time, req.amount, req.target.clone())
+            .await?;
     Ok(UserStakeOrder {
         order_id: hex::encode(order),
         order_type: UserStakeOrderType::BTC(req.target.clone()),
+        staking_wallet: staking_wallet.into(),
     })
 }
 
@@ -337,6 +340,7 @@ pub async fn create_runes_order(req: CreateStakeRunesReq) -> Result<UserStakeOrd
     Ok(UserStakeOrder {
         order_id: hex::encode(order_bytes),
         order_type: UserStakeOrderType::Runes,
+        staking_wallet: None,
     })
 }
 
@@ -345,11 +349,13 @@ pub async fn create_runes_order(req: CreateStakeRunesReq) -> Result<UserStakeOrd
 #[candid_method(update, rename = "create_btc_order")]
 pub async fn create_btc_order(req: CreateStakeBTCReq) -> Result<UserStakeOrder, String> {
     let caller = caller();
-    let order_bytes =
-        TalosService::create_btc_order(&caller, req.lock_time, req.amount, req.target.clone())?;
+    let (order_bytes, staking_wallet) =
+        TalosService::create_btc_order(&caller, req.lock_time, req.amount, req.target.clone())
+            .await?;
     Ok(UserStakeOrder {
         order_id: hex::encode(order_bytes),
         order_type: UserStakeOrderType::BTC(req.target.clone()),
+        staking_wallet: staking_wallet.into(),
     })
 }
 

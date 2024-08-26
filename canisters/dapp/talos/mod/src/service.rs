@@ -19,8 +19,9 @@ use serde_json::json;
 use std::str::FromStr;
 use talos_types::ordinals::RuneId;
 use talos_types::types::{
-    BTCStakePayload, RunesKey, RunesStatus, StakePayload, StakeStatus, StakingTarget, TalosRunes,
-    TalosUser, UserStakedBTC, UserStakedRunes, UserStatus,
+    BTCStakePayload, RunesKey, RunesStatus, StakePayload, StakeStatus, StakingTarget,
+    StakingWallet, StakingWalletCreateReq, TalosRunes, TalosUser, UserStakedBTC, UserStakedRunes,
+    UserStatus,
 };
 
 pub static DEFAULT_BTC_PROTOCOL: u128 = 0;
@@ -49,6 +50,10 @@ impl TalosService {
                 .get(&BtreeKey("setting".to_string()))
                 .map(|f| TalosSetting::from_bytes(f.value.to_bytes()))
         })
+    }
+
+    pub fn get_staking_wallet_canister() -> Option<Principal> {
+        Self::get_setting().map(|setting| setting.staking_wallet_canister)
     }
 
     pub fn add_user(talos_user: TalosUser) -> Result<(), String> {
@@ -272,17 +277,24 @@ impl TalosService {
         }
     }
 
-    pub fn create_btc_order(
+    pub async fn create_btc_order(
         caller: &Principal,
         lock_time: u32,
         stake_amount: u128,
         staking_target: StakingTarget,
-    ) -> Result<[u8; 4], String> {
+    ) -> Result<([u8; 4], StakingWallet), String> {
         let user = Self::get_user(&caller)?;
 
         if user.status == UserStatus::Blocked {
             return Err("User is blocked".to_string());
         }
+
+        let staking_wallet = Self::get_staking_wallet_canister();
+
+        if staking_wallet.is_none() {
+            return Err("Staking wallet canister not set".to_string());
+        }
+
         let xonly = user.btc_pubkey.xonly;
         let staker = vec_to_u832(xonly.clone()).unwrap();
         let id = new_order_id();
@@ -297,14 +309,29 @@ impl TalosService {
             },
             stake_amount,
             status: StakeStatus::Created,
-            btc_address: user.btc_address,
+            btc_address: user.btc_address.clone(),
             stake_target: staking_target.clone(),
         };
         BTC_ORDERS.with(|m| {
             m.borrow_mut().insert(id.clone(), btc_order);
         });
 
-        Ok(id.clone())
+        let res = ic_cdk::api::call::call(
+            staking_wallet.unwrap(),
+            "create_staking_wallet",
+            (StakingWalletCreateReq {
+                user_principal: user.principal.clone(),
+                user_btc_address: user.btc_address.clone(),
+                stake_target: staking_target.clone(),
+                order_id: id.clone(),
+                key: "test_key_1".to_string(),
+            },),
+        )
+        .await;
+
+        let call_res = extract_call_result::<StakingWallet>(res)?;
+
+        Ok((id.clone(), call_res))
     }
 
     pub fn get_user_runes_orders(caller: &Principal) -> Result<Vec<UserStakedRunes>, String> {
@@ -474,5 +501,17 @@ impl TalosService {
                 ))
             }
         }
+    }
+}
+
+pub fn extract_call_result<T: Clone>(
+    call_result: Result<(Result<T, String>,), (RejectionCode, String)>,
+) -> Result<T, String> {
+    match call_result {
+        Ok(resp) => match resp.0 {
+            Ok(r) => Ok(r.clone()),
+            Err(e) => Err(e),
+        },
+        Err((_, msg)) => Err(msg),
     }
 }
