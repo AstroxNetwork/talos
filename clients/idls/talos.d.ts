@@ -91,6 +91,7 @@ export interface StakingWallet {
 }
 export interface TalosRunes {
   'runes_status' : RunesStatus,
+  'rune_name' : string,
   'min_stake' : bigint,
   'rune_id' : string,
 }

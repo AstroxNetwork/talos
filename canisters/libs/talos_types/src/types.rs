@@ -13,6 +13,7 @@ pub enum RunesStatus {
 
 #[derive(CandidType, Deserialize, Clone, Debug, Serialize)]
 pub struct TalosRunes {
+    pub rune_name: String,
     pub rune_id: String,
     pub runes_status: RunesStatus,
     pub min_stake: u128,

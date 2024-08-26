@@ -5,6 +5,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const TalosRunes = IDL.Record({
     'runes_status' : RunesStatus,
+    'rune_name' : IDL.Text,
     'min_stake' : IDL.Nat,
     'rune_id' : IDL.Text,
   });

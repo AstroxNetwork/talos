@@ -103,7 +103,7 @@ pub fn update_staking_wallet(wallet: StakingWallet) -> Result<(), String> {
 }
 
 #[cfg(not(feature = "no_candid"))]
-#[update(name = "create_core_dao_tx", guard = "owner_guard")]
+#[update(name = "create_core_dao_tx")]
 #[candid_method(update, rename = "create_core_dao_tx")]
 pub async fn create_core_dao_tx(req: CreateCoreDaoTxReq) -> Result<(SignedTx, SignedTx), String> {
     WalletService::create_and_sign_core_dao_tx(

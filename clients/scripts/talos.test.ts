@@ -35,20 +35,20 @@ describe('talos', () => {
       getCanisterId('talos_staking_wallet')!,
     );
 
-    // await talosActor.admin_add_setting({
-    //   oracles_endpoint: 'https://oracle.wizz.cash',
-    //   staking_wallet_canister: Principal.fromText(getCanisterId('talos_staking_wallet')!),
-    //   token_canister: Principal.anonymous(),
-    //   lp_rewards_ratio: 0.0001,
-    // });
+    await talosActor.admin_add_setting({
+      oracles_endpoint: 'https://oracle.wizz.cash',
+      staking_wallet_canister: Principal.fromText(getCanisterId('talos_staking_wallet')!),
+      token_canister: Principal.anonymous(),
+      lp_rewards_ratio: 0.0001,
+    });
 
-    // await walletActor.ego_owner_add(Principal.fromText(getCanisterId('talos')!));
+    await walletActor.ego_owner_add(Principal.fromText(getCanisterId('talos')!));
 
-    // const lp = await talosActor.get_btc_lp_reward(BigInt(1000), BigInt(100000));
-    // console.log(lp);
+    const lp = await talosActor.get_btc_lp_reward(BigInt(1000), BigInt(100000));
+    console.log(lp);
 
-    // const who = await talosActor.whoAmI();
-    // console.log(who);
+    const who = await talosActor.whoAmI();
+    console.log(who);
   });
   test.skip('register', async () => {
     let userIdentity = Secp256k1KeyIdentity.generate();
@@ -88,7 +88,8 @@ describe('talos', () => {
     const res = await talosActor.admin_add_runes({
       runes_status: { Active: null },
       min_stake: BigInt(100),
-      rune_id: '1:100',
+      rune_name: 'WOO•HOO•KOO',
+      rune_id: '2584503:2',
     });
     console.log({ res });
 
@@ -106,62 +107,73 @@ describe('talos', () => {
     console.log({ price });
   });
 
-  test.skip('create_runes_order', async () => {
+  test('create_runes_order', async () => {
     // rune id
-    const rune_id = '1:100';
+    const runesList = [
+      { rune_name: 'WOO•HOO•KOO', rune_id: '2584503:2' },
+      { rune_name: 'MIHAELMINTAAA', rune_id: '2587810:1775' },
+      { rune_name: 'HELLO•WORLD', rune_id: '2584592:58' },
+      { rune_name: 'MOON•THE•MOON', rune_id: '2587737:194' },
+      { rune_name: 'MAKE•BITCOIN•MAGICAL•AGAIN', rune_id: '2585371:62' },
+    ];
 
     // admin have to add runes first
-    const added_runes = await talosActor.admin_add_runes({
-      runes_status: { Active: null },
-      min_stake: BigInt(100),
-      rune_id,
-    });
-    console.log({ added_runes });
+
+    for (let i = 0; i < runesList.length; i++) {
+      const { rune_id, rune_name } = runesList[i];
+      const added_runes = await talosActor.admin_add_runes({
+        runes_status: { Active: null },
+        rune_name: rune_name,
+        min_stake: BigInt(100),
+        rune_id,
+      });
+      console.log({ added_runes });
+    }
 
     // user comes in, register
-    let userIdentity = Secp256k1KeyIdentity.generate();
-    let userActor = await getActor<talosService>(
-      // use credential identity, owner of canister
-      userIdentity,
-      // use idlFactory from generated file
-      talosIDL,
-      // get canister ID for 'talos', `configs/talos.json` is generated
-      getCanisterId('talos')!,
-    );
+    // let userIdentity = Secp256k1KeyIdentity.generate();
+    // let userActor = await getActor<talosService>(
+    //   // use credential identity, owner of canister
+    //   userIdentity,
+    //   // use idlFactory from generated file
+    //   talosIDL,
+    //   // get canister ID for 'talos', `configs/talos.json` is generated
+    //   getCanisterId('talos')!,
+    // );
 
-    const pubkey = Buffer.from('02afee55a2cdcb6c47a593d629b04e13399354d348a3d84ad19310e2b6396e7237', 'hex');
-    const xonly = Array.from(pubkey.slice(0, 32));
-    const hash160 = Array.from(bitcoin.crypto.hash160(pubkey));
+    // const pubkey = Buffer.from('02afee55a2cdcb6c47a593d629b04e13399354d348a3d84ad19310e2b6396e7237', 'hex');
+    // const xonly = Array.from(pubkey.slice(0, 32));
+    // const hash160 = Array.from(bitcoin.crypto.hash160(pubkey));
 
-    const registered = await userActor.user_register('tb1pv8cz8vvj2s95pdzeax4x9tkuawr5um49n9er6gd2wf6wthwrh6ysqnkcq9', {
-      hash160,
-      xonly,
-      pubkey: Array.from(pubkey),
-    });
+    // const registered = await userActor.user_register('tb1pv8cz8vvj2s95pdzeax4x9tkuawr5um49n9er6gd2wf6wthwrh6ysqnkcq9', {
+    //   hash160,
+    //   xonly,
+    //   pubkey: Array.from(pubkey),
+    // });
 
-    // user can create runes order now
-    const createdOrder = await userActor.create_runes_order({
-      lock_time: 100,
-      amount: BigInt(100),
-      rune_id,
-      oracle_ts: BigInt(123),
-    });
-    console.log({ createdOrder });
+    // // user can create runes order now
+    // const createdOrder = await userActor.create_runes_order({
+    //   lock_time: 100,
+    //   amount: BigInt(100),
+    //   rune_id,
+    //   oracle_ts: BigInt(123),
+    // });
+    // console.log({ createdOrder });
 
-    const userRunesOrders = await userActor.get_user_all_runes_orders([]);
-    console.log({ userRunesOrders });
+    // const userRunesOrders = await userActor.get_user_all_runes_orders([]);
+    // console.log({ userRunesOrders });
 
-    // admin remove order
-    const removeOrderAction = await talosActor.admin_remove_order((createdOrder as any).Ok);
-    console.log({ removeOrderAction });
+    // // admin remove order
+    // const removeOrderAction = await talosActor.admin_remove_order((createdOrder as any).Ok);
+    // console.log({ removeOrderAction });
 
-    // admin remove runes
-    const removeRunesAction = await talosActor.admin_remove_runes(rune_id);
-    console.log({ removeRunesAction });
+    // // admin remove runes
+    // const removeRunesAction = await talosActor.admin_remove_runes(rune_id);
+    // console.log({ removeRunesAction });
 
-    // admin remove user
-    const removeUserAction = await talosActor.admin_remove_user_by_address('tb1pv8cz8vvj2s95pdzeax4x9tkuawr5um49n9er6gd2wf6wthwrh6ysqnkcq9');
-    console.log({ removeUserAction });
+    // // admin remove user
+    // const removeUserAction = await talosActor.admin_remove_user_by_address('tb1pv8cz8vvj2s95pdzeax4x9tkuawr5um49n9er6gd2wf6wthwrh6ysqnkcq9');
+    // console.log({ removeUserAction });
   });
   test.skip('create_staking_wallet', async () => {
     const key = 'test_key_1';
