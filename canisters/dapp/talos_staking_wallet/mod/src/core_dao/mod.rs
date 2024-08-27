@@ -387,20 +387,19 @@ mod test {
 
     #[test]
     pub fn test_decode() {
-        let tx_bytes="0200000000010111a454b0652ec144e17d5b7e8b70605d1fece4260fa491e8112a86b8023028fb0100000000feffffff01bc020000000000001600149264e5ecdf35602966c4fcaa7737a55f738b27eb034730440220637c71d4098644d76b183803dc2d54d78ced77d5bb5f8639e3b905fc26d7eb1d02203a89ebcd71caf2945fc5d47f6007f896a795c1cf3b10bd4ec8e61eac56c7953101210302d92ed7c5b0428388ade1e5c52a8ac8514905b8ed3216bc67e3363f55fda88f20047379b866b17576a9149264e5ecdf35602966c4fcaa7737a55f738b27eb88ac7379b866";
+        let tx_bytes="0200000000010179ab9cd8fcc5665afe94490afee8504512bb755224d0e882d6b448d0dac82fc20100000000feffffff01fc020000000000001600141bb0f5257a82f042853e1bddf8f2dba9f9f8a17403483045022100e6c879e9b80abe874de8ecca6ae7b34d0f3cc1d769ac99ca1363d45eae96be5c02204d5606b6397faa9c4b2d88d9d695c37955a204bb57ba0057477d9ac38ee2febd01210288e3b6465e45dc9f4322e422d96d60552de08b94bf790f745b8f2911059b619c20046191cd66b17576a9141bb0f5257a82f042853e1bddf8f2dba9f9f8a17488ac6191cd66";
         let mut decoder = Cursor::new(hex::decode(tx_bytes).unwrap());
         let tx: Transaction =
             Transaction::consensus_decode_from_finite_reader(&mut decoder).unwrap();
 
-        print!("is_lock_time_enabled {:?} \n", tx.is_lock_time_enabled());
-        print!("is_explicitly_rbf {:?} \n", tx.is_explicitly_rbf());
-        print!(
-            "is_absolute_timelock_satisfied {:?} \n",
-            tx.is_absolute_timelock_satisfied(
-                Height::from_str("39129").unwrap(),
-                Time::from_str("1723365747").unwrap()
-            )
-        );
+        tx.input.iter().for_each(|v| {
+            println!("tx {:?}", v.witness.len());
+        });
+        let s = bitcoin::script::ScriptBuf::from_hex(
+            "046a94a466b17576a91414906c96c9c1ee97e2457f3ab9f80757075d78df88ac",
+        )
+        .unwrap();
+        println!("script {:?}", s.to_asm_string());
 
         // println!("tx {:?}", tx);
         // let (_option, staker) = CoreDao::decode_lock_tx(&tx).unwrap();

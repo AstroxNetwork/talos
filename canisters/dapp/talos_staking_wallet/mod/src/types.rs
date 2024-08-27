@@ -159,7 +159,7 @@ pub struct CreateCoreDaoTxReq {
 #[derive(CandidType, Serialize, Deserialize, Clone)]
 pub struct CreateCoreDaoTxRes {
     pub signed_tx_commit: SignedTx,
-    pub signed_tx_reveal: SignedTx,
+    // pub signed_tx_reveal: SignedTx,
     pub redeem_script: Vec<u8>,
 }
 

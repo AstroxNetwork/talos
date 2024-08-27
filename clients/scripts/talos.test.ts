@@ -35,22 +35,22 @@ describe('talos', () => {
       getCanisterId('talos_staking_wallet')!,
     );
 
-    await talosActor.admin_add_setting({
-      oracles_endpoint: 'https://oracle.wizz.cash',
-      staking_wallet_canister: Principal.fromText(getCanisterId('talos_staking_wallet')!),
-      token_canister: Principal.anonymous(),
-      lp_rewards_ratio: 0.0001,
-    });
+    // await talosActor.admin_add_setting({
+    //   oracles_endpoint: 'https://oracle.wizz.cash',
+    //   staking_wallet_canister: Principal.fromText(getCanisterId('talos_staking_wallet')!),
+    //   token_canister: Principal.anonymous(),
+    //   lp_rewards_ratio: 0.0001,
+    // });
 
-    await walletActor.ego_owner_add(Principal.fromText(getCanisterId('talos')!));
+    // await walletActor.ego_owner_add(Principal.fromText(getCanisterId('talos')!));
 
-    const lp = await talosActor.get_btc_lp_reward(BigInt(1000), BigInt(100000));
-    console.log(lp);
+    // const lp = await talosActor.get_btc_lp_reward(BigInt(1000), BigInt(100000));
+    // console.log(lp);
 
-    const who = await talosActor.whoAmI();
-    console.log(who);
+    // const who = await talosActor.whoAmI();
+    // console.log(who);
 
-    await walletActor.set_talos(Principal.fromText(getCanisterId('talos')!));
+    // await walletActor.set_talos(Principal.fromText(getCanisterId('talos')!));
   });
   test.skip('register', async () => {
     let userIdentity = Secp256k1KeyIdentity.generate();
@@ -104,12 +104,12 @@ describe('talos', () => {
     const list2 = await talosActor.get_rune_list();
     console.log({ list2 });
   });
-  test('get_oracle_price', async () => {
+  test.skip('get_oracle_price', async () => {
     const price = await talosActor.get_price_from_oracles('2584503:2');
     console.log({ price });
   });
 
-  test('create_runes_order', async () => {
+  test.skip('create_runes_order', async () => {
     // rune id
     const runesList = [
       { rune_name: 'WOO•HOO•KOO', rune_id: '2584503:2' },
@@ -347,5 +347,16 @@ describe('talos', () => {
     console.log(tx);
     console.log(tx.toHex());
     console.log(expectedTx);
+  });
+
+  test('omg3', async () => {
+    const tx =
+      '020000000001018a889a0dd7c7c019d8cd316cb1351156235ddc30fe3a87fceaadcbb23f43ea890000000000feffffff01a704000000000000160014d5350f2c210eb67b000c3fa7e5b9d9d8a5bd0c7203483045022100d82e1c8545198d5def7476abd9f4abdeb453033cbcd5e6068e623f0ac50fe518022068b6789459581b0721269bd9b1da4bebe7aac8a81c7fc4fe04296ebef4f26c53012102858e42052f50d4d1b89dd77d34fbe55fc7cd65f13b6cc62088ca46c2e0b56d882004b6d8cd66b17576a914d5350f2c210eb67b000c3fa7e5b9d9d8a5bd0c7288acb6d8cd66';
+    const txRaw = bitcoin.Transaction.fromHex(tx);
+    txRaw.ins.forEach((input, index) => {
+      console.log(input.witness[0].toString('hex'));
+      console.log(input.witness[1].toString('hex'));
+      console.log(input.witness[2].toString('hex'));
+    });
   });
 });

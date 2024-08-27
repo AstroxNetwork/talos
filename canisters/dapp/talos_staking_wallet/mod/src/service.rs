@@ -199,37 +199,37 @@ impl WalletService {
         });
 
         // unlock tx
-        let psbt_unlock = core_dao.create_unlock_tx(
-            txid.clone(),
-            vout + 1,
-            stake_lock_time.clone(),
-            stake_amount.clone(),
-            stake_amount.clone() - reveal_fee.clone(),
-            wallet.stake_address.clone(),
-        )?;
-        let res_unlock = sign_segwit0_tx_unlock(
-            psbt_unlock,
-            wallet.pub_key_hex.clone(),
-            key_string.clone(),
-            wallet.bytes,
-            export_psbt,
-        )
-        .await
-        .map_err(|e| e.to_string())?;
-
-        let tx_detail_unlock = TxDetail {
-            tx_type: TxType::Withdraw,
-            txid: res_unlock.txid.clone(),
-            tx_bytes: hex::decode(res_unlock.tx_hex.clone()).unwrap(),
-            tx_state: TxState::Stashed,
-            wallet_id: wallet_id.clone(),
-            lock_time: stake_lock_time.clone(),
-        };
-
-        TXS.with(|t| {
-            t.borrow_mut()
-                .insert(tx_detail_unlock.get_txid(), tx_detail_unlock.clone())
-        });
+        // let psbt_unlock = core_dao.create_unlock_tx(
+        //     txid.clone(),
+        //     vout + 1,
+        //     stake_lock_time.clone(),
+        //     stake_amount.clone(),
+        //     stake_amount.clone() - reveal_fee.clone(),
+        //     wallet.stake_address.clone(),
+        // )?;
+        // let res_unlock = sign_segwit0_tx_unlock(
+        //     psbt_unlock,
+        //     wallet.pub_key_hex.clone(),
+        //     key_string.clone(),
+        //     wallet.bytes,
+        //     export_psbt,
+        // )
+        // .await
+        // .map_err(|e| e.to_string())?;
+        //
+        // let tx_detail_unlock = TxDetail {
+        //     tx_type: TxType::Withdraw,
+        //     txid: res_unlock.txid.clone(),
+        //     tx_bytes: hex::decode(res_unlock.tx_hex.clone()).unwrap(),
+        //     tx_state: TxState::Stashed,
+        //     wallet_id: wallet_id.clone(),
+        //     lock_time: stake_lock_time.clone(),
+        // };
+        //
+        // TXS.with(|t| {
+        //     t.borrow_mut()
+        //         .insert(tx_detail_unlock.get_txid(), tx_detail_unlock.clone())
+        // });
 
         ic_cdk::api::call::notify(
             Self::get_talos().unwrap(),
@@ -252,7 +252,7 @@ impl WalletService {
 
         Ok(CreateCoreDaoTxRes {
             signed_tx_commit: res,
-            signed_tx_reveal: res_unlock,
+            // signed_tx_reveal: res_unlock,
             redeem_script: redeem_script.unwrap().clone().to_bytes(),
         })
     }
@@ -1002,6 +1002,7 @@ mod test {
                     #[allow(unused_assignments)]
                     let mut signature = None;
                     let sig = secp.sign_ecdsa(&message, &sk);
+
                     // Update the witness stack.
                     signature = Some(Signature {
                         sig,
