@@ -205,8 +205,10 @@ impl TalosService {
                         lock_time,
                     },
                     stake_amount,
-                    runes_id: rune_id.to_string(),
-                    runes_name: runes.rune_name.clone(),
+                    rune_id: rune_id.to_string(),
+                    rune_name: runes.rune_name.clone(),
+                    rune_divisibility: runes.rune_divisibility,
+                    rune_symbol: runes.rune_symbol,
                     status: StakeStatus::Created,
                     btc_address: user.btc_address,
                     oracle_ts,
@@ -521,7 +523,7 @@ impl TalosService {
                     }
 
                     if let Some(id) = _found_id {
-                        if order.runes_id != format!("{}", id).to_string() {
+                        if order.rune_id != id.to_string() {
                             return false;
                         }
                     }

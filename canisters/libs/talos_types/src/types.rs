@@ -12,8 +12,10 @@ pub enum RunesStatus {
 
 #[derive(CandidType, Deserialize, Clone, Debug, Serialize)]
 pub struct TalosRunes {
-    pub rune_name: String,
     pub rune_id: String,
+    pub rune_name: String,
+    pub rune_symbol: char,
+    pub rune_divisibility: u8,
     pub runes_status: RunesStatus,
     pub min_stake: u128,
 }
@@ -112,8 +114,10 @@ impl StakeStatus {
 pub struct UserStakedRunes {
     pub stake_payload: StakePayload,
     pub stake_amount: u128,
-    pub runes_id: String,
-    pub runes_name: String,
+    pub rune_id: String,
+    pub rune_name: String,
+    pub rune_symbol: char,
+    pub rune_divisibility: u8,
     pub status: StakeStatus,
     pub btc_address: String,
     pub oracle_ts: u64,
