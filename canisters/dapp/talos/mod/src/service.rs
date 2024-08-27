@@ -210,6 +210,7 @@ impl TalosService {
                     status: StakeStatus::Created,
                     btc_address: user.btc_address,
                     oracle_ts,
+                    create_time: ic_cdk::api::time(),
                     lock_txid: None,
                     unlock_txid: None,
                 };

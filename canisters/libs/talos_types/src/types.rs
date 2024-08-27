@@ -117,6 +117,7 @@ pub struct UserStakedRunes {
     pub status: StakeStatus,
     pub btc_address: String,
     pub oracle_ts: u64,
+    pub create_time: u64,
     pub lock_txid: Option<String>,
     pub unlock_txid: Option<String>,
 }
