@@ -402,6 +402,17 @@ impl TalosService {
         }
     }
 
+    pub fn get_runes_order_by_id(order_id: String) -> Result<UserStakedRunes, String> {
+        let order_id_bytes = hex::decode(order_id.clone()).map_err(|e| e.to_string())?;
+        let order_id_u84 = vec_to_u84(order_id_bytes)?;
+        let order = RUNES_ORDERS.with(|m| m.borrow().get(&order_id_u84));
+        if order.is_none() {
+            Err("Order not found".to_string())
+        } else {
+            Ok(order.unwrap())
+        }
+    }
+
     pub fn update_btc_order_by_id(
         order_id: String,
         btc_order: UserStakedBTC,

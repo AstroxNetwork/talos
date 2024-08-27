@@ -384,6 +384,18 @@ pub async fn set_btc_order_status(order_id: String, status: StakeStatus) -> Resu
 }
 
 #[cfg(not(feature = "no_candid"))]
+#[update(name = "set_user_runes_order_status")]
+#[candid_method(update, rename = "set_user_runes_order_status")]
+pub async fn set_user_runes_order_status(order_id: String, status: StakeStatus) -> Result<(), String> {
+    let order_id_bytes =
+        hex::decode(order_id.clone()).map_err(|_| "Cannot convert order to bytes".to_string())?;
+    match TalosService::get_runes_order_by_id(order_id.clone()) {
+        Ok(_) => TalosService::set_user_runes_order_status(order_id_bytes, status),
+        Err(_) => Err("Order not found".to_string()),
+    }
+}
+
+#[cfg(not(feature = "no_candid"))]
 #[update(name = "update_btc_order_stake_params")]
 #[candid_method(update, rename = "update_btc_order_stake_params")]
 pub async fn update_btc_order_stake_params(params: StakeParams) -> Result<(), String> {
