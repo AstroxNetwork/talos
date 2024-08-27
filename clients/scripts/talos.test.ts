@@ -35,22 +35,22 @@ describe('talos', () => {
       getCanisterId('talos_staking_wallet')!,
     );
 
-    // await talosActor.admin_add_setting({
-    //   oracles_endpoint: 'https://oracle.wizz.cash',
-    //   staking_wallet_canister: Principal.fromText(getCanisterId('talos_staking_wallet')!),
-    //   token_canister: Principal.anonymous(),
-    //   lp_rewards_ratio: 0.0001,
-    // });
+    await talosActor.admin_add_setting({
+      oracles_endpoint: 'https://oracle.wizz.cash',
+      staking_wallet_canister: Principal.fromText(getCanisterId('talos_staking_wallet')!),
+      token_canister: Principal.anonymous(),
+      lp_rewards_ratio: 0.0001,
+    });
 
-    // await walletActor.ego_owner_add(Principal.fromText(getCanisterId('talos')!));
+    await walletActor.ego_owner_add(Principal.fromText(getCanisterId('talos')!));
 
-    // const lp = await talosActor.get_btc_lp_reward(BigInt(1000), BigInt(100000));
-    // console.log(lp);
+    const lp = await talosActor.get_btc_lp_reward(BigInt(1000), BigInt(100000));
+    console.log(lp);
 
-    // const who = await talosActor.whoAmI();
-    // console.log(who);
+    const who = await talosActor.whoAmI();
+    console.log(who);
 
-    // await walletActor.set_talos(Principal.fromText(getCanisterId('talos')!));
+    await walletActor.set_talos(Principal.fromText(getCanisterId('talos')!));
   });
   test.skip('register', async () => {
     let userIdentity = Secp256k1KeyIdentity.generate();
@@ -104,12 +104,12 @@ describe('talos', () => {
     const list2 = await talosActor.get_rune_list();
     console.log({ list2 });
   });
-  test.skip('get_oracle_price', async () => {
+  test('get_oracle_price', async () => {
     const price = await talosActor.get_price_from_oracles('2584503:2');
     console.log({ price });
   });
 
-  test.skip('create_runes_order', async () => {
+  test('create_runes_order', async () => {
     // rune id
     const runesList = [
       { rune_name: 'WOO•HOO•KOO', rune_id: '2584503:2' },
@@ -349,7 +349,7 @@ describe('talos', () => {
     console.log(expectedTx);
   });
 
-  test('omg3', async () => {
+  test.skip('omg3', async () => {
     const tx =
       '02000000000102b4b8882e3b5de87b7731d94042cf9fb74766cd9f542d80813418bf98f7615f070000000000feffffff766c27a585648749cf57bcac92fb38b4eec395cea9dcdb8982e96278c714dc2c0100000000feffffff022202000000000000225120cf6c49f125fc865199771ac8d022af69eb632f28102114f72ce0dd81c617557e0315e30500000000225120cf6c49f125fc865199771ac8d022af69eb632f28102114f72ce0dd81c617557e0348304502210084d199d00114749f088dae432d320c1448e7bba2df6da1cae8053fc2d87df780022045cf43d892986f2e252548278f99c96e9125506ff086fdae76fe2ce0199ee5c2012103ef8ff237474b31bd315cf561356fd943507572f479b68962466017105912dcf720046a94a466b17576a91414906c96c9c1ee97e2457f3ab9f80757075d78df88ac01405cfd73dd2176f33104ab9c0f362ca68bb384afa714aff1fd5fabfc0a34be8b3d3979f86fabaf6bacad1fe974866db6bdaa31b3dd00f3668d4f599edafefa4e536a94a466';
     const txRaw = bitcoin.Transaction.fromHex(tx);
