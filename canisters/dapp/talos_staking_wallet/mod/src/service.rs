@@ -296,7 +296,7 @@ impl WalletService {
             txid.clone(),
             vout,
             stake_lock_time.clone(),
-            stake_amount.clone() - reveal_fee.clone(),
+            stake_amount.clone(),
             value.clone() - reveal_fee,
             wallet.stake_address.clone(),
         )?;
