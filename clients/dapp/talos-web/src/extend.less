@@ -1,0 +1,217 @@
+
+:root {
+  --talos-color-primary: #1668dc;
+}
+
+.talos-dark {
+  .talos-bg {
+    background-color: #131313;
+
+  }
+
+  .talos-bg-mask {
+    background: linear-gradient(rgb(19, 19, 19) 0%, rgb(19, 19, 19) 100%);
+  }
+
+  .talos-bg-card {
+    background-color: #131313;
+  }
+
+  .talos-bg-surface {
+    background-color: rgb(27, 27, 27);
+  }
+}
+
+.talos-light {
+  .talos-bg {
+    background-color: #ffffff;
+  }
+
+  .talos-bg-mask {
+    background: radial-gradient(100% 100% at 50% 0%, rgba(255, 184, 226, 0) 0%, rgba(255, 255, 255, 0) 100%), rgb(255, 255, 255);
+  }
+
+  .talos-bg-card {
+    background-color: #ffffff;
+  }
+
+  .talos-bg-surface {
+    background-color: rgb(249, 249, 249);
+  }
+}
+
+.talos-page::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.talos-page {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  min-width: 100vw;
+  max-width: 100vw;
+  min-height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  .talos-main {
+    min-height: 100vh;
+    box-sizing: border-box;
+    position: relative;
+    overflow-y: auto;
+  }
+
+  .talos-body {
+    max-width: 480px;
+    display: flex;
+    margin: 0 auto 140px;
+    flex-direction: column;
+    padding-left: 8px;
+    padding-right: 8px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .talos-footer {
+    position: absolute;
+    bottom: 24px;
+    left: 0;
+    right: 0;
+    z-index: 2;
+
+    .talos-footer-content {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 16px;
+
+      > div {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+  }
+}
+
+.talos-noise {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: url("./assets/noise.png");
+  opacity: 0.018;
+  pointer-events: none;
+}
+
+.talos-mask {
+  position: absolute;
+  inset: 0;
+  width: 200vw;
+  height: 200vh;
+  transform: translate(-50vw, -100vh);
+}
+
+.talos-ticker {
+  transition: all 0.5s;
+  transform-origin: center;
+  animation-fill-mode: forwards;
+  animation-direction: alternate-reverse;
+  animation-iteration-count: infinite;
+  filter: blur(8px);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  z-index: 1;
+
+  &:before, &:after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: inline-block;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 1px solid var(--talos-color-primary);
+    transition: all 0.5s;
+    opacity: 0;
+  }
+
+  > div {
+    display: inline-block;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 36px);
+    opacity: 0;
+    font-size: 14px;
+  }
+
+  &:hover {
+    filter: blur(0);
+    transform: scale(1.1) !important;
+    cursor: pointer;
+
+    &:before {
+      width: calc(100% + 12px);
+      height: calc(100% + 12px);
+      opacity: 0.72;
+    }
+
+    &:after {
+      width: calc(100% + 32px);
+      height: calc(100% + 32px);
+      opacity: 0.48;
+    }
+
+    > div {
+      opacity: 1;
+    }
+  }
+}
+
+
+.ant-modal-mask {
+  backdrop-filter: blur(10px);
+}
+
+
+
+@font-face {
+  font-family: 'HarmonyOSSans';
+  src: url('./assets/fonts/HarmonyOS_Sans_Regular.ttf') format('truetype');
+  font-weight: 400; /* Regular */
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'HarmonyOSSans';
+  src: url('./assets/fonts/HarmonyOS_Sans_Light.ttf') format('truetype');
+  font-weight: 300; /* Light */
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'HarmonyOSSans';
+  src: url('./assets/fonts/HarmonyOS_Sans_Bold.ttf') format('truetype');
+  font-weight: 700; /* Bold */
+  font-style: normal;
+}
+
+
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  font-family: 'HarmonyOSSans' !important;
+}

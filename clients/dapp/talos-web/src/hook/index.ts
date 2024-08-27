@@ -7,9 +7,9 @@ import {
   WalletAssetBalance,
 } from '@wizz-btc/provider';
 import { bitcoin } from '@wizz-btc/wallet';
-import IconBitcoinMainnet from '@/assets/icon/bitcoin.svg';
-import IconBitcoinTestnet from '@/assets/icon/bitcoin_testnet.svg';
-import IconBitcoinSignet from '@/assets/icon/bitcoin_signet.svg';
+import IconBitcoinMainnet from '@/assets/icons/bitcoin.svg';
+import IconBitcoinTestnet from '@/assets/icons/bitcoin_testnet.svg';
+import IconBitcoinSignet from '@/assets/icons/bitcoin_signet.svg';
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import { ElectrumApi, MempoolApi } from '@wizz-btc/api';
 import { useDispatch, useSelector } from 'react-redux';
@@ -18,23 +18,42 @@ import { balanceOf } from '@wizz-btc/helpers';
 import { OrdXApi, useOrdXApi } from '../service/ordx';
 import { getPropByKey } from '../utils';
 import { App } from 'antd';
+import { DelegationChain, DelegationIdentity, Ed25519KeyIdentity } from '@dfinity/identity';
+import { Canister } from '../canister';
+import { Network } from 'bitcoinjs-lib';
 
-export const NETWORKS = {
+export type NetworkEntry = {
+  color: string;
+  electrumApi: string;
+  ordxApi: string;
+  icon: string;
+  mempoolUrl: string;
+  type: string;
+  symbol: string;
+  mempoolApi: string;
+  network: Network;
+  supportInscriptions: boolean;
+  supportAtomicals: boolean;
+  supportRunes: boolean;
+};
+export const NETWORKS: Record<string, NetworkEntry> = {
   mainnet: {
     type: 'mainnet',
     network: bitcoin.networks.bitcoin,
     icon: IconBitcoinMainnet,
     color: '#f7931a',
+    symbol: 'BTC',
     mempoolUrl: 'https://mempool.space',
     mempoolApi: 'https://mempool.space/api',
     electrumApi: 'https://ep.wizz.cash/proxy',
     ordxApi: 'https://ordx-test.wizz.cash',
     supportAtomicals: true,
     supportRunes: true,
-    supportOrdinals: true,
+    supportInscriptions: true,
   },
   testnet: {
     type: 'testnet',
+    symbol: 'tBTC',
     network: bitcoin.networks.testnet,
     icon: IconBitcoinTestnet,
     color: '#5fd15c',
@@ -44,10 +63,11 @@ export const NETWORKS = {
     ordxApi: 'https://ordx-test.wizz.cash',
     supportAtomicals: true,
     supportRunes: true,
-    supportOrdinals: true,
+    supportInscriptions: true,
   },
   testnet4: {
     type: 'testnet4',
+    symbol: 'tBTC',
     network: bitcoin.networks.testnet,
     icon: IconBitcoinTestnet,
     color: '#5fd15c',
@@ -57,10 +77,11 @@ export const NETWORKS = {
     ordxApi: 'https://ordx-test.wizz.cash',
     supportAtomicals: true,
     supportRunes: false,
-    supportOrdinals: false,
+    supportInscriptions: false,
   },
   signet: {
     type: 'signet',
+    symbol: 'sBTC',
     network: bitcoin.networks.testnet,
     icon: IconBitcoinSignet,
     color: '#b028aa',
@@ -70,7 +91,7 @@ export const NETWORKS = {
     ordxApi: 'https://ordx-test.wizz.cash',
     supportAtomicals: false,
     supportRunes: false,
-    supportOrdinals: false,
+    supportInscriptions: false,
   },
 };
 
@@ -142,10 +163,12 @@ export type WalletBalance = WalletAssetBalance & {
   loading: boolean;
   refresh: () => any;
   address: string;
-  network: typeof NETWORKS.mainnet | typeof NETWORKS.testnet | typeof NETWORKS.signet;
+  principal?: string;
+  publicKey?: string;
+  network: NetworkEntry;
 };
 
-export async function listOrdinals(
+export async function listInscriptions(
   wallet: {
     getAddressInscriptions: (
       address: string,
@@ -235,6 +258,10 @@ export const useWalletProvider = () => {
 };
 
 
+export function usePrincipal() {
+  return useSelector((state: RootState) => state.global.principal);
+}
+
 export function useBalance(): WalletBalance {
   const electrumApi = useElectrumApi();
   const address = useAddress();
@@ -242,6 +269,8 @@ export function useBalance(): WalletBalance {
   const dispatch = useDispatch<RootDispatch>();
   const mempoolApi = useMempoolApi();
   const provider = useWalletProvider();
+  const principal = usePrincipal();
+  const publicKey = usePublicKey();
   const ordXApi = useOrdXApi();
   const [loading, plusLoading, minusLoading] = useLoading();
   const cacheKey = `${address}:${network}`;
@@ -255,11 +284,14 @@ export function useBalance(): WalletBalance {
       address,
       electrumApi,
       mempoolApi,
-      listOrdinals: (address) => network.supportOrdinals ? listOrdinals({
-        getAddressInscriptions(_: string, cursor: number, size: number): Promise<{
+      listInscriptions: (address) => network.supportInscriptions ? listInscriptions({
+        getAddressInscriptions(address: string, cursor: number, size: number): Promise<{
           list: InscriptionItem[];
           total: number
         }> {
+          if (provider?.getInscriptionsByAddress) {
+            return provider?.getInscriptionsByAddress(address, cursor, size) as any;
+          }
           return provider?.getInscriptions(cursor, size) as any;
         },
       }, address) : Promise.resolve([]),
@@ -268,7 +300,7 @@ export function useBalance(): WalletBalance {
       console.log('balance', b);
       dispatch.balance.save({ [cacheKey]: b });
     });
-  }, [address, cacheKey, dispatch.balance, electrumApi, mempoolApi, network.supportOrdinals, network.supportRunes, ordXApi, provider]);
+  }, [address, cacheKey, dispatch.balance, electrumApi, mempoolApi, network.supportInscriptions, network.supportRunes, ordXApi, provider]);
   useEffect(() => {
     const controller = new AbortController();
     plusLoading();
@@ -288,12 +320,82 @@ export function useBalance(): WalletBalance {
     refresh,
     address,
     network,
+    principal,
+    publicKey,
   });
 }
 
+export function useIdentity() {
+  const sessionIdentity = useSelector((state: RootState) => state.global.sessionIdentity);
+  return useMemo(() => {
+    if (!sessionIdentity) {
+      return;
+    }
+    return Ed25519KeyIdentity.fromJSON(JSON.stringify(sessionIdentity));
+  }, [sessionIdentity]);
+}
+
+
+export function useDelegateIdentity() {
+  const delegationChain = useSelector((state: RootState) => state.global.delegationChain);
+  const sessionIdentity = useSelector((state: RootState) => state.global.sessionIdentity);
+  return useMemo(() => {
+    if (!delegationChain || !sessionIdentity) {
+      return;
+    }
+    const d = DelegationChain.fromJSON(JSON.stringify(delegationChain));
+    const i = DelegationIdentity.fromDelegation(Ed25519KeyIdentity.fromParsedJson(sessionIdentity), d);
+    return DelegationIdentity.fromDelegation(i, d);
+  }, [delegationChain, sessionIdentity]);
+}
+
+export function useTalosActor() {
+  const identity = useIdentity();
+  return useMemo(() => {
+    return Canister.newTalosActor(identity);
+  }, [identity]);
+}
+
+export function useTalosWalletActor() {
+  const identity = useIdentity();
+  return useMemo(() => {
+    return Canister.newTalosWalletActor(identity);
+  }, [identity]);
+}
+
+export function useThemeMode() {
+  const theme = useSelector((state: RootState) => state.global?.theme);
+  const [current, setCurrent] = useState(theme);
+  useEffect(() => {
+    if (['light', 'dark'].includes(theme)) {
+      setCurrent(theme as any);
+      return;
+    }
+    const change = (e: MediaQueryListEvent) => {
+      setCurrent(e.matches ? 'dark' : 'light');
+    };
+    const list = window.matchMedia('(prefers-color-scheme: dark)');
+    setCurrent(list.matches ? 'dark' : 'light');
+    list.addEventListener('change', change);
+    return () => list.removeEventListener('change', change);
+  }, [theme]);
+
+  useEffect(() => {
+    if (theme === 'system') {
+      const list = window.matchMedia('(prefers-color-scheme: dark)');
+      document.body.setAttribute('theme', list.matches ? 'dark' : 'light');
+    } else {
+      document.body.setAttribute('theme', current);
+    }
+  }, [current, theme]);
+  return current as 'light' | 'dark';
+}
 
 export function emptyBalance(): WalletAssetBalance {
   return {
+    rgb20s: [],
+    rgb20sUTXOs: [],
+    rgb20sValue: 0,
     height: 0,
     scripthash: '',
     address: '',
@@ -303,11 +405,11 @@ export function emptyBalance(): WalletAssetBalance {
     atomicalsUTXOs: [],
     regularValue: 0,
     regularUTXOs: [],
-    ordinalsValue: 0,
-    ordinalsUTXOs: [],
+    inscriptionsValue: 0,
+    inscriptionsUTXOs: [],
     runesValue: 0,
     runesUTXOs: [],
-    ordinals: {},
+    inscriptions: {},
     atomicals: {},
     runes: [],
     confirmedValue: 0,

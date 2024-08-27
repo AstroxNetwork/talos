@@ -2,36 +2,38 @@ import { Button, Dropdown, List, MenuProps, Modal, Typography } from 'antd';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootDispatch, RootState } from '@/store';
 import copy from 'copy-to-clipboard';
-import { useEffect, useState } from 'react';
-import IconWizz from '@/assets/icon/wizz.svg';
+import React, { useEffect, useState } from 'react';
+import IconWizz from '@/assets/icons/wizz.svg';
+import IconUnisat from '@/assets/icons/unisat.svg';
+import IconOkx from '@/assets/icons/okx.svg';
+import IconBitget from '@/assets/icons/bitget.svg';
 import { DisconnectOutlined, HistoryOutlined } from '@ant-design/icons';
 import { useAddress, useLoading, useNetwork } from '../hook';
-import useBreakpoint from 'antd/es/grid/hooks/useBreakpoint';
 import { message } from './EntryGlobal.tsx';
 import { getPropByKey, shortAddress } from '../utils';
-import { WalletProviderKey } from '@wizz-btc/provider';
+import { IWalletProvider } from '@wizz-btc/provider';
 
 const providers: Record<string, any> = [
   {
     icon: IconWizz,
     name: 'Wizz Wallet',
-    key: 'atom',
+    key: 'wizz',
   },
-  // {
-  //   icon: IconUnisat,
-  //   name: 'Unisat Wallet',
-  //   key: 'unisat',
-  // },
-  // {
-  //   icon: IconOkx,
-  //   name: 'OKX Wallet',
-  //   key: 'okxwallet.bitcoin',
-  // },
-  // {
-  //   icon: IconBitget,
-  //   name: 'Bitget Wallet',
-  //   key: 'bitkeep.unisat',
-  // },
+  {
+    icon: IconUnisat,
+    name: 'Unisat Wallet',
+    key: 'unisat',
+  },
+  {
+    icon: IconOkx,
+    name: 'OKX Wallet',
+    key: 'okxwallet.bitcoin',
+  },
+  {
+    icon: IconBitget,
+    name: 'Bitget Wallet',
+    key: 'bitkeep.unisat',
+  },
 ];
 
 
@@ -42,10 +44,9 @@ const ConnectButton = () => {
   const [loading, loadingPlus, loadingMinus] = useLoading();
   const providerKey = useSelector((state: RootState) => state.global?.providerKey);
   const [showProviderModal, setShowProviderModal] = useState(false);
-  const breakpoint = useBreakpoint();
   useEffect(() => {
     if (providerKey) {
-      const provider = getPropByKey(window, providerKey);
+      const provider = getPropByKey(window, providerKey) as IWalletProvider;
       if (provider) {
         provider.getAccounts().then((accounts) => {
           if (accounts.length) {
@@ -72,7 +73,7 @@ const ConnectButton = () => {
     const items: MenuProps['items'] = [
       {
         key: 'history',
-        label: <><HistoryOutlined /><span className="ml-2">View History</span></>,
+        label: <><HistoryOutlined /><span className="ml-2">Transaction History</span></>,
         onClick: () => {
           window.open(`${network.mempoolUrl}/address/${address}`, '_blank');
         },
@@ -85,25 +86,24 @@ const ConnectButton = () => {
         },
       },
     ];
-    const isMobile = breakpoint === 'xs';
     return (
       <Dropdown menu={{ items }} placement="bottomRight" className="relative">
-        <Button size={'large'} className={`leading-4 relative ${isMobile ? 'w-8 h-8' : ''}`}
+        <Button type={'dashed'} className={'leading-4 relative rounded-3xl !px-2.5'}
                 onClick={() => {
                   copy(address);
                   message.destroy();
                   message.success('Copied');
                 }}>
           <img src={network.icon} alt={network.type} title={network.type} className={'w-4 h-4'} />
-          {isMobile ? null : shortAddress(address)}
+          {shortAddress(address)}
         </Button>
       </Dropdown>
     );
   }
 
-  const handleConnect = (key: string) => {
+  const handleConnect = async (key: string) => {
     loadingPlus();
-    dispatch.global.connect(key as WalletProviderKey).finally(() => {
+    dispatch.global.connect(key).finally(() => {
       loadingMinus();
     });
   };
@@ -113,8 +113,8 @@ const ConnectButton = () => {
   };
 
   return <>
-    <Button type="primary" size={'large'} className="leading-4 min-w-[100px]" onClick={handleOnClick}>
-      Connect Bitcoin Wallet
+    <Button type="primary" className="leading-4 min-w-[100px] rounded-3xl" onClick={handleOnClick}>
+      Connect
     </Button>
     <Modal
       open={showProviderModal}

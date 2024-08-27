@@ -4,7 +4,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#FF9813',
+        primary: '#1668dc',
+        'primary-op10': 'rgba(22,104,220,0.1)',
+        soft: '#9c9ca4',
+      },
+      fontFamily: {
+        nova: ['Nova', 'sans-serif'],
       },
     },
   },

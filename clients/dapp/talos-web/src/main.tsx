@@ -2,6 +2,7 @@ import ReactDOM from 'react-dom/client';
 import React from 'react';
 import TalosApp from './TalosApp.tsx';
 import './index.css';
+import './extend.less';
 import dayjs from 'dayjs';
 import LocalizedFormat from 'dayjs/plugin/localizedFormat';
 import RelativeTime from 'dayjs/plugin/relativeTime';

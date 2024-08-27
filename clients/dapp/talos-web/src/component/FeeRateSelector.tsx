@@ -1,6 +1,6 @@
 import { FeeBlockItem, FeeRateResponse } from '@wizz-btc/api';
-import { InputNumber, Slider, Spin } from 'antd';
-import { useEffect, useMemo, useState } from 'react';
+import { InputNumber, Slider } from 'antd';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useLoading, useMempoolApi } from '../hook';
 
 const feeRateLabelMap = {
@@ -34,7 +34,7 @@ const FeeRateSelector = (props: {
     const last = it.feeRange.length - 1;
     let fastestFee = Math.round(it.feeRange[Math.max(last - 1, 0)]);
     let halfHourFee = Math.round(it.feeRange[Math.max(last - 3, 0)]);
-    const hourFee = Math.round(it.feeRange[0]);
+    const hourFee = Math.max(Math.round(it.feeRange[0]), 1);
     if (halfHourFee <= hourFee) {
       halfHourFee = hourFee + 1;
     }
@@ -107,8 +107,8 @@ const FeeRateSelector = (props: {
   }, [feeBlock, feeRate]);
   let hasSelected = false;
   return (
-    <div>
-      <div className={`flex relative ${className || ''}`}>
+    <div className={`talos-bg-card rounded-[24px] p-2 overflow-hidden ${className || ''}`}>
+      <div className={'flex talos-bg-surface rounded-[16px]'}>
         {entries.map(([key, value], index) => {
           const curr = feeRates?.[key as keyof FeeRateResponse];
           const selected = !!(curr && feeRate && curr == feeRate);
@@ -118,16 +118,14 @@ const FeeRateSelector = (props: {
           return (
             <div
               key={key}
-              className={`flex-1 px-2 py-1 text-xs cursor-pointer ${index == 0 ? 'rounded-l z-10' : index == 2 ? 'rounded-r z-10' : '-mx-[2px]'} ${index == 1 ? (selected ? 'z-20' : 'z-0') : ''} border-solid border-2 ${
-                selected ? 'border-primary' : 'border-primary-active'
-              }`}
+              className={`flex flex-col items-center justify-center flex-1 p-2 text-xs cursor-pointer border-b-2 border-solid ${index == 0 ? 'rounded-l-[16px] z-10' : index == 2 ? 'rounded-r-[16px] z-10' : '-mx-[2px]'} ${selected ? 'border-primary' : 'border-transparent'}`}
               onClick={() => {
                 setFeeRate(curr);
               }}>
-              <div className="font-bold text-white">
-                {value.label} <Spin className="ml-2" spinning={loading} size={'small'} />
+              <div className={`${selected ? 'text-primary' : 'text-soft'}`}>
+                {value.label}
               </div>
-              <div className="text-primary mt-0.5">
+              <div className="mt-0.5">
                 {curr || '--'}
                 <span className="text-[10px]"> sat/vB</span>
               </div>
@@ -148,8 +146,9 @@ const FeeRateSelector = (props: {
         <InputNumber
           value={feeRate}
           precision={0}
-          addonAfter={'sat/vB'}
-          className={`max-w-40 border-2 rounded ${hasSelected ? '' : 'border-primary border-solid'}`}
+          addonAfter={<span className={'text-soft'}>sat/vB</span>}
+          variant={'borderless'}
+          className={`max-w-40 border-2 talos-bg-surface rounded-3xl ${hasSelected ? 'border-transparent' : 'border-primary border-solid'}`}
           onChange={(e) => {
             setFeeRate(e as number);
           }}

@@ -1,12 +1,13 @@
 import { App as AntApp, ConfigProvider, theme } from 'antd';
 import EntryGlobal from './component/EntryGlobal.tsx';
-import Main from './ui/Main';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { darkTheme, getDefaultConfig, RainbowKitProvider } from '@rainbow-me/rainbowkit';
-import { Chain } from 'viem/chains';
+import { darkTheme, getDefaultConfig, lightTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import { Chain, coreDao } from 'viem/chains';
 import { defineChain } from 'viem';
-import React from 'react';
+import React, { useEffect } from 'react';
+import Page from './ui/Page';
+import { useThemeMode } from './hook';
 
 const queryClient = new QueryClient();
 
@@ -36,54 +37,47 @@ const coreDev: Chain = defineChain({
   testnet: true,
 });
 const config = getDefaultConfig({
-  appName: 'ARC20 Staking',
+  appName: 'Talos Staking',
   projectId: 'f650ac7107adc07858f8d768fad2e829',
-  chains: [coreDev],
+  chains: [coreDao, coreDev],
 });
 
 function TalosApp() {
-  return <WagmiProvider config={config}>
-    <QueryClientProvider client={queryClient}>
-      <RainbowKitProvider theme={darkTheme({
-        borderRadius: 'small',
-        accentColor: '#FF9813',
-      })} coolMode locale={'en-US'}>
-        <ConfigProvider
-          theme={{
-            token: {
-              colorPrimary: '#ff9813',
-              colorLink: '#ff9813',
-            },
-            algorithm: theme.darkAlgorithm,
-            components: {
-              Checkbox: {
-                colorPrimary: '#ff9813',
+  const themeMode = useThemeMode();
+  useEffect(() => {
+    document.body.className = `talos-${themeMode}`;
+  }, [themeMode]);
+  const [rkTheme, antTheme] = themeMode === 'dark' ? [darkTheme({
+    accentColor: '#1668dc',
+  }), theme.darkAlgorithm] : [lightTheme({
+    accentColor: '#1668dc',
+  }), theme.defaultAlgorithm];
+  return (
+    <WagmiProvider config={config}>
+      <QueryClientProvider client={queryClient}>
+        <RainbowKitProvider theme={rkTheme} coolMode locale={'en-US'}>
+          <ConfigProvider
+            theme={{
+              token: {
+                colorPrimary: '#1668dc',
+                colorLink: '#1668dc',
               },
-              Button: {
-                borderRadius: 4,
-                borderRadiusLG: 4,
-                borderRadiusSM: 4,
+              algorithm: antTheme,
+              components: {
+                Checkbox: {
+                  colorPrimary: '#1668dc',
+                },
               },
-              Input: {
-                borderRadius: 4,
-                borderRadiusLG: 4,
-                borderRadiusSM: 4,
-              },
-              InputNumber: {
-                borderRadius: 4,
-                borderRadiusLG: 4,
-                borderRadiusSM: 4,
-              },
-            },
-          }}>
-          <AntApp>
-            <EntryGlobal />
-            <Main />
-          </AntApp>
-        </ConfigProvider>
-      </RainbowKitProvider>
-    </QueryClientProvider>
-  </WagmiProvider>;
+            }}>
+            <AntApp>
+              <EntryGlobal />
+              <Page />
+            </AntApp>
+          </ConfigProvider>
+        </RainbowKitProvider>
+      </QueryClientProvider>
+    </WagmiProvider>
+  );
 }
 
 export default TalosApp;

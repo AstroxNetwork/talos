@@ -1,4 +1,3 @@
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import wasm from 'vite-plugin-wasm';
 import { createHtmlPlugin } from 'vite-plugin-html';
@@ -6,16 +5,33 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { vitePluginVersionMark } from 'vite-plugin-version-mark';
 import path from 'path';
 import topLevelAwait from 'vite-plugin-top-level-await';
+import { defineConfig } from 'vite';
+import mkcert from 'vite-plugin-mkcert';
 
 export default defineConfig(({ mode }) => {
-  console.log('mode', mode);
   const isProd = mode === 'production';
+  const src = path.resolve(__dirname, 'src');
+  console.log({ mode, isProd, src });
   return {
     esbuild: {
       drop: isProd ? ['console', 'debugger'] : undefined,
     },
+    server:{
+      port: 10086,
+    },
+    optimizeDeps: {
+      esbuildOptions: {
+        define: {
+          global: 'globalThis',
+        },
+        supported: {
+          bigint: true,
+        },
+      },
+    },
     plugins: [
       react(),
+      nodePolyfills(),
       wasm(),
       topLevelAwait(),
       vitePluginVersionMark({
@@ -27,14 +43,13 @@ export default defineConfig(({ mode }) => {
         ifGlobal: true,
       }),
       // legacy(),
-      nodePolyfills(),
       createHtmlPlugin({
         minify: true,
       }),
-      // mkcert({ force: true, savePath: path.resolve(__dirname, '.certs') }),
+      mkcert({ force: true, savePath: path.resolve(__dirname, '.certs') }),
     ],
     resolve: {
-      alias: [{ find: '@', replacement: path.resolve(__dirname, 'src') }],
+      alias: [{ find: '@', replacement: src }],
     },
     css: {
       preprocessorOptions: {
