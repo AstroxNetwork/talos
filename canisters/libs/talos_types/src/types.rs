@@ -1,4 +1,3 @@
-use bitcoin::Txid;
 use candid::{CandidType, Decode, Deserialize, Encode, Principal};
 use ic_stable_structures::storable::Bound;
 use ic_stable_structures::Storable;
@@ -118,8 +117,8 @@ pub struct UserStakedRunes {
     pub status: StakeStatus,
     pub btc_address: String,
     pub oracle_ts: u64,
-    pub lock_txid: Option<Txid>,
-    pub unlock_txid: Option<Txid>,
+    pub lock_txid: Option<String>,
+    pub unlock_txid: Option<String>,
 }
 
 impl Storable for UserStakedRunes {
@@ -139,8 +138,8 @@ impl Storable for UserStakedRunes {
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct UpdateUserStakedRunes {
     pub status: StakeStatus,
-    pub lock_txid: Option<Txid>,
-    pub unlock_txid: Option<Txid>,
+    pub lock_txid: Option<String>,
+    pub unlock_txid: Option<String>,
 }
 
 #[derive(CandidType, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

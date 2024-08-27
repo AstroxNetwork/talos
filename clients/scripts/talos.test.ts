@@ -109,7 +109,7 @@ describe('talos', () => {
     console.log({ price });
   });
 
-  test.skip('create_runes_order', async () => {
+  test('create_runes_order', async () => {
     // rune id
     const runesList = [
       { rune_name: 'WOO•HOO•KOO', rune_id: '2584503:2' },

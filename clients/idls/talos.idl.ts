@@ -105,11 +105,14 @@ export const idlFactory = ({ IDL }) => {
   });
   const UserStakedRunes = IDL.Record({
     'status' : StakeStatus,
+    'unlock_txid' : IDL.Opt(IDL.Text),
+    'lock_txid' : IDL.Opt(IDL.Text),
     'stake_payload' : StakePayload,
     'oracle_ts' : IDL.Nat64,
     'stake_amount' : IDL.Nat,
     'btc_address' : IDL.Text,
     'runes_id' : IDL.Text,
+    'runes_name' : IDL.Text,
   });
   const Result_4 = IDL.Variant({
     'Ok' : IDL.Vec(UserStakedRunes),
@@ -148,6 +151,11 @@ export const idlFactory = ({ IDL }) => {
     'price' : IDL.Float64,
   });
   const Result_10 = IDL.Variant({ 'Ok' : OracleOrder, 'Err' : IDL.Text });
+  const UpdateUserStakedRunes = IDL.Record({
+    'status' : StakeStatus,
+    'unlock_txid' : IDL.Opt(IDL.Text),
+    'lock_txid' : IDL.Opt(IDL.Text),
+  });
   const HttpHeader = IDL.Record({ 'value' : IDL.Text, 'name' : IDL.Text });
   const HttpResponse = IDL.Record({
     'status' : IDL.Nat,
@@ -253,6 +261,11 @@ export const idlFactory = ({ IDL }) => {
     'get_user_btc_order' : IDL.Func([], [Result_3], ['query']),
     'get_user_runes_order' : IDL.Func([], [Result_4], ['query']),
     'set_btc_order_status' : IDL.Func([IDL.Text, StakeStatus], [Result], []),
+    'set_user_runes_order_status' : IDL.Func(
+        [IDL.Text, UpdateUserStakedRunes],
+        [Result],
+        [],
+      ),
     'transform' : IDL.Func([TransformArgs], [HttpResponse], ['query']),
     'update_btc_order_stake_params' : IDL.Func([StakeParams], [Result], []),
     'user_register' : IDL.Func([IDL.Text, BtcPubkey], [Result_2], []),

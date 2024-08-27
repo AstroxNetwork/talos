@@ -125,6 +125,11 @@ export interface TransformArgs {
   'context' : Array<number>,
   'response' : HttpResponse,
 }
+export interface UpdateUserStakedRunes {
+  'status' : StakeStatus,
+  'unlock_txid' : [] | [string],
+  'lock_txid' : [] | [string],
+}
 export interface UserStakeOrder {
   'staking_wallet' : [] | [StakingWallet],
   'order_type' : UserStakeOrderType,
@@ -143,11 +148,14 @@ export interface UserStakedBTC {
 }
 export interface UserStakedRunes {
   'status' : StakeStatus,
+  'unlock_txid' : [] | [string],
+  'lock_txid' : [] | [string],
   'stake_payload' : StakePayload,
   'oracle_ts' : bigint,
   'stake_amount' : bigint,
   'btc_address' : string,
   'runes_id' : string,
+  'runes_name' : string,
 }
 export type UserStatus = { 'Blocked' : null } |
   { 'Normal' : null };
@@ -223,6 +231,10 @@ export interface _SERVICE {
   'get_user_btc_order' : ActorMethod<[], Result_3>,
   'get_user_runes_order' : ActorMethod<[], Result_4>,
   'set_btc_order_status' : ActorMethod<[string, StakeStatus], Result>,
+  'set_user_runes_order_status' : ActorMethod<
+    [string, UpdateUserStakedRunes],
+    Result,
+  >,
   'transform' : ActorMethod<[TransformArgs], HttpResponse>,
   'update_btc_order_stake_params' : ActorMethod<[StakeParams], Result>,
   'user_register' : ActorMethod<[string, BtcPubkey], Result_2>,
