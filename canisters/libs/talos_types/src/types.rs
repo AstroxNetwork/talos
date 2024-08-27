@@ -100,11 +100,21 @@ pub enum StakeStatus {
     Error(String),
 }
 
+impl StakeStatus {
+    pub fn is_live(&self) -> bool {
+        match self {
+            StakeStatus::Locking | StakeStatus::Unlocked => true,
+            _ => false,
+        }
+    }
+}
+
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct UserStakedRunes {
     pub stake_payload: StakePayload,
     pub stake_amount: u128,
     pub runes_id: String,
+    pub runes_name: String,
     pub status: StakeStatus,
     pub btc_address: String,
     pub oracle_ts: u64,

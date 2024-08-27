@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::http::HttpService;
 use crate::memory::{
     insert_btree, BTC_ADDRESS_USER, BTC_ORDERS, BTREES, LISTED_RUNES_MAP, ORACLE_ORDERS,
@@ -212,7 +213,8 @@ impl TalosService {
                         lock_time,
                     },
                     stake_amount,
-                    runes_id: format!("{}", rune_id),
+                    runes_id: rune_id.to_string(),
+                    runes_name: runes.rune_name.clone(),
                     status: StakeStatus::Created,
                     btc_address: user.btc_address,
                     oracle_ts,
@@ -447,6 +449,21 @@ impl TalosService {
         }
     }
 
+    pub fn set_user_runes_order_status(order_id: Vec<u8>, status: StakeStatus) -> Result<(), String> {
+        let order_id_u84 = vec_to_u84(order_id.clone())?;
+        let order = RUNES_ORDERS.with(|m| m.borrow().get(&order_id_u84));
+        if order.is_none() {
+            Err("Order not found".to_string())
+        } else {
+            let mut _order = order.unwrap();
+            _order.status = status;
+            RUNES_ORDERS.with(|m| {
+                m.borrow_mut().insert(order_id_u84, _order);
+            });
+            Ok(())
+        }
+    }
+
     pub fn get_all_runes_orders(
         with_principal: Option<Principal>,
         with_rune_id: Option<String>,
@@ -472,17 +489,24 @@ impl TalosService {
         let res = RUNES_ORDERS.with(|m| {
             m.borrow()
                 .iter()
-                .filter(|f| {
+                .filter(|(_,order)| {
+
+                    if !order.status.is_live() {
+                        return false;
+                    }
+
                     if let Some(btc_address) = &_found_address {
-                        if f.1.btc_address != btc_address.to_string() {
+                        if order.btc_address != btc_address.to_string() {
                             return false;
                         }
                     }
+
                     if let Some(id) = _found_id {
-                        if f.1.runes_id != format!("{}", id).to_string() {
+                        if order.runes_id != format!("{}", id).to_string() {
                             return false;
                         }
                     }
+
                     true
                 })
                 .map(|f| f.1.clone())
