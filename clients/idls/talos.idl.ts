@@ -31,6 +31,7 @@ export const idlFactory = ({ IDL }) => {
     'stake_address' : IDL.Text,
     'stake_target' : StakingTarget,
     'bytes' : IDL.Vec(IDL.Nat8),
+    'order_id' : IDL.Vec(IDL.Nat8),
     'pub_key_hex' : IDL.Text,
   });
   const UserStakeOrderType = IDL.Variant({
@@ -83,6 +84,7 @@ export const idlFactory = ({ IDL }) => {
     'vout' : IDL.Nat32,
     'delegator' : IDL.Text,
     'chain_id' : IDL.Nat16,
+    'order_id' : IDL.Vec(IDL.Nat8),
     'stake_amount' : IDL.Nat64,
     'reveal_fee' : IDL.Nat64,
     'stake_lock_time' : IDL.Nat32,

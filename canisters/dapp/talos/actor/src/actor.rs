@@ -387,11 +387,11 @@ pub async fn set_btc_order_status(order_id: String, status: StakeStatus) -> Resu
 #[update(name = "update_btc_order_stake_params")]
 #[candid_method(update, rename = "update_btc_order_stake_params")]
 pub async fn update_btc_order_stake_params(params: StakeParams) -> Result<(), String> {
-    let order_id = params.wallet_id.clone();
-
-    match TalosService::get_btc_order_by_id(order_id.clone()) {
+    let order_id = params.order_id.clone();
+    let order_string = hex::encode(order_id.clone());
+    match TalosService::get_btc_order_by_id(order_string.clone()) {
         Ok(r) => TalosService::update_btc_order_by_id(
-            order_id,
+            order_string.clone(),
             UserStakedBTC {
                 stake_params: Some(params),
                 ..r

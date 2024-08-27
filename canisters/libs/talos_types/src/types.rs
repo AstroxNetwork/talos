@@ -142,6 +142,7 @@ pub enum StakingTarget {
 
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct StakeParams {
+    pub order_id: [u8; 4],
     pub wallet_id: String,
     pub stake_amount: u64,
     pub reveal_fee: u64,
@@ -197,6 +198,7 @@ pub struct StakingWallet {
     pub stake_address: String,
     pub bytes: [u8; 32],
     pub pub_key_hex: String,
+    pub order_id: [u8; 4],
 }
 
 #[derive(CandidType, Clone, Debug, Ord, PartialOrd, Eq, PartialEq, Serialize, Deserialize)]

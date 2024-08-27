@@ -69,6 +69,7 @@ impl WalletService {
         };
 
         let wallet = StakingWallet {
+            order_id,
             user_principal: user_principal.clone(),
             user_btc_address: req.user_btc_address.clone(),
             stake_target: stake_target.clone(),
@@ -234,6 +235,7 @@ impl WalletService {
             Self::get_talos().unwrap(),
             "update_btc_order_stake_params",
             (StakeParams {
+                order_id: wallet.order_id,
                 wallet_id: wallet_id.clone(),
                 stake_amount: stake_amount.clone(),
                 reveal_fee: reveal_fee.clone(),

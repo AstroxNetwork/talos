@@ -42,6 +42,7 @@ export const idlFactory = ({ IDL }) => {
     'stake_address' : IDL.Text,
     'stake_target' : StakingTarget,
     'bytes' : IDL.Vec(IDL.Nat8),
+    'order_id' : IDL.Vec(IDL.Nat8),
     'pub_key_hex' : IDL.Text,
   });
   const Result_2 = IDL.Variant({ 'Ok' : StakingWallet, 'Err' : IDL.Text });

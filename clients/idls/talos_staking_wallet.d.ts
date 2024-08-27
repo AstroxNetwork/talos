@@ -58,6 +58,7 @@ export interface StakingWallet {
   'stake_address' : string,
   'stake_target' : StakingTarget,
   'bytes' : Array<number>,
+  'order_id' : Array<number>,
   'pub_key_hex' : string,
 }
 export interface StakingWalletCreateReq {

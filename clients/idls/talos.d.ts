@@ -74,6 +74,7 @@ export interface StakeParams {
   'vout' : number,
   'delegator' : string,
   'chain_id' : number,
+  'order_id' : Array<number>,
   'stake_amount' : bigint,
   'reveal_fee' : bigint,
   'stake_lock_time' : number,
@@ -99,6 +100,7 @@ export interface StakingWallet {
   'stake_address' : string,
   'stake_target' : StakingTarget,
   'bytes' : Array<number>,
+  'order_id' : Array<number>,
   'pub_key_hex' : string,
 }
 export interface TalosRunes {
