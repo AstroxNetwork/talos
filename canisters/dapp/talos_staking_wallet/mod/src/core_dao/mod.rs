@@ -137,7 +137,7 @@ impl CoreDao {
             input: vec![TxIn {
                 previous_output: out,
                 script_sig: ScriptBuf::new(),
-                sequence: Sequence::from_hex_str("0xfffffffd").map_err(|e| e.to_string())?,
+                sequence: Sequence::from_hex_str("0xffffffff").map_err(|e| e.to_string())?,
                 witness: Witness::default(),
             }],
             output: vec![

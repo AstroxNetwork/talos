@@ -297,7 +297,7 @@ impl WalletService {
             vout,
             stake_lock_time.clone(),
             stake_amount.clone() - reveal_fee.clone(),
-            value.clone(), // should calculate it
+            value.clone() - reveal_fee,
             wallet.stake_address.clone(),
         )?;
         let res_unlock = sign_segwit0_tx_unlock(
