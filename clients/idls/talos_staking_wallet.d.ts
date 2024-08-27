@@ -23,7 +23,6 @@ export interface CreateCoreDaoTxReq {
 }
 export interface CreateCoreDaoTxRes {
   'signed_tx_commit' : SignedTx,
-  'signed_tx_reveal' : SignedTx,
   'redeem_script' : Array<number>,
 }
 export interface LogEntry { 'ts' : bigint, 'msg' : string, 'kind' : string }

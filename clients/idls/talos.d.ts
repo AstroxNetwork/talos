@@ -149,6 +149,7 @@ export interface UserStakedBTC {
 export interface UserStakedRunes {
   'status' : StakeStatus,
   'unlock_txid' : [] | [string],
+  'create_time' : bigint,
   'lock_txid' : [] | [string],
   'stake_payload' : StakePayload,
   'oracle_ts' : bigint,

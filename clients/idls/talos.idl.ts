@@ -106,6 +106,7 @@ export const idlFactory = ({ IDL }) => {
   const UserStakedRunes = IDL.Record({
     'status' : StakeStatus,
     'unlock_txid' : IDL.Opt(IDL.Text),
+    'create_time' : IDL.Nat64,
     'lock_txid' : IDL.Opt(IDL.Text),
     'stake_payload' : StakePayload,
     'oracle_ts' : IDL.Nat64,

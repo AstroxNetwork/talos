@@ -20,7 +20,6 @@ export const idlFactory = ({ IDL }) => {
   });
   const CreateCoreDaoTxRes = IDL.Record({
     'signed_tx_commit' : SignedTx,
-    'signed_tx_reveal' : SignedTx,
     'redeem_script' : IDL.Vec(IDL.Nat8),
   });
   const Result = IDL.Variant({ 'Ok' : CreateCoreDaoTxRes, 'Err' : IDL.Text });
