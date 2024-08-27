@@ -378,7 +378,7 @@ impl TalosService {
         let res = RUNES_ORDERS.with(|m| {
             m.borrow()
                 .iter()
-                .filter(|f| f.1.btc_address == user.btc_address)
+                .filter(|(_, order)| order.btc_address == user.btc_address && order.status.is_live())
                 .map(|f| f.1.clone())
                 .collect::<Vec<UserStakedRunes>>()
         });
@@ -428,10 +428,9 @@ impl TalosService {
         let res = BTC_ORDERS.with(|m| {
             m.borrow()
                 .iter()
-                .filter(|f| {
-                    f.1.btc_address == user.btc_address
-                        && (f.1.status == StakeStatus::Locking
-                        || f.1.status == StakeStatus::Unlocked)
+                .filter(|(_, order)| {
+                    order.btc_address == user.btc_address
+                        && order.status.is_live()
                 })
                 .map(|f| f.1.clone())
                 .collect::<Vec<UserStakedBTC>>()
