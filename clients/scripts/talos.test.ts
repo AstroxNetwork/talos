@@ -2,15 +2,12 @@ import { idlFactory as talosIDL } from '@/idls/talos.idl';
 import { _SERVICE as talosService } from '@/idls/talos';
 import { idlFactory as walletIDL } from '@/idls/talos_staking_wallet.idl';
 import { _SERVICE as walletService } from '@/idls/talos_staking_wallet';
-import { getCanisterId, getActor, identity, hasOwnProperty } from '@ego-js/utils';
+import { getActor, getCanisterId, hasOwnProperty, identity } from '@ego-js/utils';
 import { ActorSubclass } from '@dfinity/agent';
 import { Principal } from '@dfinity/principal';
 import { Secp256k1KeyIdentity } from '@dfinity/identity-secp256k1';
 import * as bitcoin from 'bitcoinjs-lib';
-import { verify } from 'tiny-secp256k1';
 import { witnessStackToScriptWitness } from 'bitcoinjs-lib/src/psbt/psbtutils';
-import { m } from '@/dapp/talos-web/dist/js/BSGhfAfJ';
-import { i } from '@/dapp/talos-web/dist/js/Dkcua01I';
 
 describe('talos', () => {
   let talosActor: ActorSubclass<talosService>;
@@ -112,22 +109,21 @@ describe('talos', () => {
   test('create_runes_order', async () => {
     // rune id
     const runesList = [
-      { rune_name: 'WOO•HOO•KOO', rune_id: '2584503:2' },
-      { rune_name: 'MIHAELMINTAAA', rune_id: '2587810:1775' },
-      { rune_name: 'HELLO•WORLD', rune_id: '2584592:58' },
-      { rune_name: 'MOON•THE•MOON', rune_id: '2587737:194' },
-      { rune_name: 'MAKE•BITCOIN•MAGICAL•AGAIN', rune_id: '2585371:62' },
+      { rune_name: 'WOO•HOO•KOO', rune_id: '2584503:2', rune_divisibility: 0, rune_symbol: '$' },
+      { rune_name: 'MIHAELMINTAAA', rune_id: '2587810:1775', rune_divisibility: 0, rune_symbol: 'M' },
+      { rune_name: 'HELLO•WORLD', rune_id: '2584592:58', rune_divisibility: 2, rune_symbol: '^' },
+      { rune_name: 'HELLO•WORLD•FIXED', rune_id: '2584614:140', rune_divisibility: 2, rune_symbol: '^' },
+      { rune_name: 'MOON•THE•MOON', rune_id: '2587737:194', rune_divisibility: 9, rune_symbol: '😀' },
+      { rune_name: 'MAKE•BITCOIN•MAGICAL•AGAIN', rune_id: '2585371:62', rune_divisibility: 0, rune_symbol: '🧙' },
     ];
 
     // admin have to add runes first
 
-    for (let i = 0; i < runesList.length; i++) {
-      const { rune_id, rune_name } = runesList[i];
+    for (let rune of runesList) {
       const added_runes = await talosActor.admin_add_runes({
         runes_status: { Active: null },
-        rune_name: rune_name,
-        min_stake: BigInt(100),
-        rune_id,
+        min_stake: BigInt(10),
+        ...rune,
       });
       console.log({ added_runes });
     }
@@ -326,7 +322,10 @@ describe('talos', () => {
       });
 
       const finalScriptWitness = witnessStackToScriptWitness(redeemPayment.witness ?? []);
-      console.log({ finalScriptWitness: finalScriptWitness.toString('hex'), redeemPayment: redeemPayment.witness?.map(d => d.toString('hex')) });
+      console.log({
+        finalScriptWitness: finalScriptWitness.toString('hex'),
+        redeemPayment: redeemPayment.witness?.map(d => d.toString('hex')),
+      });
 
       return {
         finalScriptSig: Buffer.from(''),
