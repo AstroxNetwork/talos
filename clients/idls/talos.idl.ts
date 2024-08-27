@@ -6,7 +6,9 @@ export const idlFactory = ({ IDL }) => {
   const TalosRunes = IDL.Record({
     'runes_status' : RunesStatus,
     'rune_name' : IDL.Text,
+    'rune_divisibility' : IDL.Nat8,
     'min_stake' : IDL.Nat,
+    'rune_symbol' : IDL.Text,
     'rune_id' : IDL.Text,
   });
   const Result = IDL.Variant({ 'Ok' : IDL.Null, 'Err' : IDL.Text });
@@ -106,14 +108,16 @@ export const idlFactory = ({ IDL }) => {
   const UserStakedRunes = IDL.Record({
     'status' : StakeStatus,
     'unlock_txid' : IDL.Opt(IDL.Text),
+    'rune_name' : IDL.Text,
+    'rune_divisibility' : IDL.Nat8,
     'create_time' : IDL.Nat64,
     'lock_txid' : IDL.Opt(IDL.Text),
     'stake_payload' : StakePayload,
     'oracle_ts' : IDL.Nat64,
     'stake_amount' : IDL.Nat,
+    'rune_symbol' : IDL.Text,
     'btc_address' : IDL.Text,
-    'runes_id' : IDL.Text,
-    'runes_name' : IDL.Text,
+    'rune_id' : IDL.Text,
   });
   const Result_4 = IDL.Variant({
     'Ok' : IDL.Vec(UserStakedRunes),

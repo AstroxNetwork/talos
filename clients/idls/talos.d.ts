@@ -106,7 +106,9 @@ export interface StakingWallet {
 export interface TalosRunes {
   'runes_status' : RunesStatus,
   'rune_name' : string,
+  'rune_divisibility' : number,
   'min_stake' : bigint,
+  'rune_symbol' : string,
   'rune_id' : string,
 }
 export interface TalosSetting {
@@ -149,14 +151,16 @@ export interface UserStakedBTC {
 export interface UserStakedRunes {
   'status' : StakeStatus,
   'unlock_txid' : [] | [string],
+  'rune_name' : string,
+  'rune_divisibility' : number,
   'create_time' : bigint,
   'lock_txid' : [] | [string],
   'stake_payload' : StakePayload,
   'oracle_ts' : bigint,
   'stake_amount' : bigint,
+  'rune_symbol' : string,
   'btc_address' : string,
-  'runes_id' : string,
-  'runes_name' : string,
+  'rune_id' : string,
 }
 export type UserStatus = { 'Blocked' : null } |
   { 'Normal' : null };

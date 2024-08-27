@@ -14,7 +14,7 @@ pub enum RunesStatus {
 pub struct TalosRunes {
     pub rune_id: String,
     pub rune_name: String,
-    pub rune_symbol: char,
+    pub rune_symbol: String,
     pub rune_divisibility: u8,
     pub runes_status: RunesStatus,
     pub min_stake: u128,
@@ -116,7 +116,7 @@ pub struct UserStakedRunes {
     pub stake_amount: u128,
     pub rune_id: String,
     pub rune_name: String,
-    pub rune_symbol: char,
+    pub rune_symbol: String,
     pub rune_divisibility: u8,
     pub status: StakeStatus,
     pub btc_address: String,
