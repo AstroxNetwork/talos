@@ -101,10 +101,10 @@ export default function TokenIcons() {
       query: '?url',
       import: 'default',
     });
-    return Object.keys(iconModules).map((e: any) => {
+    return Object.entries(iconModules).map(([key, value]) => {
       return {
-        src: e,
-        name: e.split('/').pop().split('.').shift(),
+        src: value,
+        name: key.split('/').pop()!.split('.').shift(),
       };
     }).sort(() => Math.random() - 0.5);
   }, []);
