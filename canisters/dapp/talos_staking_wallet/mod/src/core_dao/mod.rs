@@ -73,7 +73,7 @@ impl CoreDao {
         let pubkey = bitcoin::PublicKey::from_slice(
             hex::decode(self.option.pub_key.clone()).unwrap().as_slice(),
         )
-        .unwrap();
+            .unwrap();
         let wpubkey_hash = pubkey.wpubkey_hash().unwrap();
 
         self.set_hash160(wpubkey_hash.clone().as_byte_array().to_vec());
@@ -125,7 +125,7 @@ impl CoreDao {
         txid: String,
         vout: u32,
         value: u64,
-    ) -> Result<Psbt, String> {
+    ) -> Result<(Psbt, String), String> {
         let (op_return, script_pubkey, _) = self.construct();
         let out = OutPoint {
             txid: Txid::from_str(txid.as_str()).map_err(|v| v.to_string())?,
@@ -141,20 +141,20 @@ impl CoreDao {
                 witness: Witness::default(),
             }],
             output: vec![
-                op_return,
                 TxOut {
                     script_pubkey,
                     value: stake_amount,
                 },
+                op_return,
             ],
         };
-        let mut psbt = Psbt::from_unsigned_tx(tx).map_err(|e| e.to_string())?;
+        let mut psbt = Psbt::from_unsigned_tx(tx.clone()).map_err(|e| e.to_string())?;
         psbt.inputs[0].witness_utxo = Some(TxOut {
             script_pubkey: address_script_buf,
             value,
         });
         psbt.inputs[0].sighash_type = Some(PsbtSighashType::from(EcdsaSighashType::All));
-        Ok(psbt)
+        Ok((psbt, tx.txid().to_string()))
     }
 
     pub fn create_unlock_tx(
@@ -319,15 +319,14 @@ pub fn u16_to_u82(v: u16) -> [u8; 2] {
 #[cfg(test)]
 mod test {
     use crate::core_dao::{u16_to_u82, u8_to_u81, CoreDao, CoreOption};
-    use bitcoin::absolute::{Height, LockTime, Time};
+    use bitcoin::absolute::LockTime;
     use bitcoin::consensus::Decodable;
     use bitcoin::key::{Secp256k1, XOnlyPublicKey};
     use bitcoin::{
-        opcodes, script, secp256k1, Address, OutPoint, ScriptBuf, Sequence, Transaction, TxIn,
+        opcodes, script, Address, OutPoint, ScriptBuf, Sequence, Transaction, TxIn,
         Witness,
     };
     use std::io::Cursor;
-    use std::str::FromStr;
 
     #[test]
     pub fn test_convert() {
@@ -388,7 +387,7 @@ mod test {
 
     #[test]
     pub fn test_decode() {
-        let tx_bytes="0200000000010179ab9cd8fcc5665afe94490afee8504512bb755224d0e882d6b448d0dac82fc20100000000feffffff01fc020000000000001600141bb0f5257a82f042853e1bddf8f2dba9f9f8a17403483045022100e6c879e9b80abe874de8ecca6ae7b34d0f3cc1d769ac99ca1363d45eae96be5c02204d5606b6397faa9c4b2d88d9d695c37955a204bb57ba0057477d9ac38ee2febd01210288e3b6465e45dc9f4322e422d96d60552de08b94bf790f745b8f2911059b619c20046191cd66b17576a9141bb0f5257a82f042853e1bddf8f2dba9f9f8a17488ac6191cd66";
+        let tx_bytes = "0200000000010179ab9cd8fcc5665afe94490afee8504512bb755224d0e882d6b448d0dac82fc20100000000feffffff01fc020000000000001600141bb0f5257a82f042853e1bddf8f2dba9f9f8a17403483045022100e6c879e9b80abe874de8ecca6ae7b34d0f3cc1d769ac99ca1363d45eae96be5c02204d5606b6397faa9c4b2d88d9d695c37955a204bb57ba0057477d9ac38ee2febd01210288e3b6465e45dc9f4322e422d96d60552de08b94bf790f745b8f2911059b619c20046191cd66b17576a9141bb0f5257a82f042853e1bddf8f2dba9f9f8a17488ac6191cd66";
         let mut decoder = Cursor::new(hex::decode(tx_bytes).unwrap());
         let tx: Transaction =
             Transaction::consensus_decode_from_finite_reader(&mut decoder).unwrap();
@@ -399,7 +398,7 @@ mod test {
         let s = bitcoin::script::ScriptBuf::from_hex(
             "046a94a466b17576a91414906c96c9c1ee97e2457f3ab9f80757075d78df88ac",
         )
-        .unwrap();
+            .unwrap();
         println!("script {:?}", s.to_asm_string());
 
         // println!("tx {:?}", tx);
@@ -426,7 +425,7 @@ mod test {
                 .unwrap()
                 .as_slice(),
         )
-        .unwrap();
+            .unwrap();
         let wpubkey_hash = pubkey.wpubkey_hash().unwrap();
 
         let s = script::Builder::new()
