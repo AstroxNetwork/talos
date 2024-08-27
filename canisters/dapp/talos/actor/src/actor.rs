@@ -30,10 +30,7 @@ use talos_mod::types::{
 };
 use talos_mod::utils::vec_to_u84;
 use talos_types::ordinals::RuneId;
-use talos_types::types::{
-    BtcPubkey, StakeParams, StakeStatus, TalosRunes, TalosUser, UserStakedBTC, UserStakedRunes,
-    UserStatus,
-};
+use talos_types::types::{BtcPubkey, StakeParams, StakeStatus, TalosRunes, TalosUser, UpdateUserStakedRunes, UserStakedBTC, UserStakedRunes, UserStatus};
 
 // ------------------
 //
@@ -386,11 +383,11 @@ pub async fn set_btc_order_status(order_id: String, status: StakeStatus) -> Resu
 #[cfg(not(feature = "no_candid"))]
 #[update(name = "set_user_runes_order_status")]
 #[candid_method(update, rename = "set_user_runes_order_status")]
-pub async fn set_user_runes_order_status(order_id: String, status: StakeStatus) -> Result<(), String> {
+pub async fn set_user_runes_order_status(order_id: String, update: UpdateUserStakedRunes) -> Result<(), String> {
     let order_id_bytes =
         hex::decode(order_id.clone()).map_err(|_| "Cannot convert order to bytes".to_string())?;
     match TalosService::get_runes_order_by_id(order_id.clone()) {
-        Ok(_) => TalosService::set_user_runes_order_status(order_id_bytes, status),
+        Ok(_) => TalosService::set_user_runes_order_status(order_id_bytes, update),
         Err(_) => Err("Order not found".to_string()),
     }
 }

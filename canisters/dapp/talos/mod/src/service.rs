@@ -1,29 +1,21 @@
-use std::collections::HashMap;
-use crate::http::HttpService;
 use crate::memory::{
     insert_btree, BTC_ADDRESS_USER, BTC_ORDERS, BTREES, LISTED_RUNES_MAP, ORACLE_ORDERS,
     PRINCIPAL_USER, RUNES_ORDERS,
 };
 use crate::types::{
-    BtreeKey, BtreeValue, OracleOrder, OracleOrderKey, OracleOrderSave, OracleResponse,
+    BtreeKey, BtreeValue, OracleOrder, OracleOrderKey, OracleOrderSave,
     TalosSetting, UserAddress,
 };
 use crate::utils::{new_order_id, vec_to_u832, vec_to_u84};
-use candid::{CandidType, Encode, Nat, Principal};
+use candid::{Nat, Principal};
 use ic_cdk::api::call::RejectionCode;
 use ic_stable_structures::storable::Blob;
 use ic_stable_structures::Storable;
 use icrc_ledger_types::icrc1::account::Account;
 use icrc_ledger_types::icrc1::transfer::{NumTokens, TransferArg, TransferError};
-use serde::Serialize;
-use serde_json::{json, to_string};
 use std::str::FromStr;
 use talos_types::ordinals::RuneId;
-use talos_types::types::{
-    BTCStakePayload, RunesKey, RunesStatus, StakePayload, StakeStatus, StakingTarget,
-    StakingWallet, StakingWalletCreateReq, TalosRunes, TalosUser, UserStakedBTC, UserStakedRunes,
-    UserStatus,
-};
+use talos_types::types::{BTCStakePayload, RunesKey, RunesStatus, StakePayload, StakeStatus, StakingTarget, StakingWallet, StakingWalletCreateReq, TalosRunes, TalosUser, UpdateUserStakedRunes, UserStakedBTC, UserStakedRunes, UserStatus};
 
 pub static DEFAULT_BTC_PROTOCOL: u128 = 0;
 pub static DEFAULT_RUNES_PROTOCOL: u128 = 1;
@@ -218,6 +210,8 @@ impl TalosService {
                     status: StakeStatus::Created,
                     btc_address: user.btc_address,
                     oracle_ts,
+                    lock_txid: None,
+                    unlock_txid: None,
                 };
                 RUNES_ORDERS.with(|m| {
                     m.borrow_mut().insert(id.clone(), runes_order);
@@ -368,7 +362,7 @@ impl TalosService {
                 key: "test_key_1".to_string(),
             },),
         )
-        .await;
+            .await;
 
         let call_res = extract_call_result::<StakingWallet>(res)?;
 
@@ -437,7 +431,7 @@ impl TalosService {
                 .filter(|f| {
                     f.1.btc_address == user.btc_address
                         && (f.1.status == StakeStatus::Locking
-                            || f.1.status == StakeStatus::Unlocked)
+                        || f.1.status == StakeStatus::Unlocked)
                 })
                 .map(|f| f.1.clone())
                 .collect::<Vec<UserStakedBTC>>()
@@ -460,14 +454,29 @@ impl TalosService {
         }
     }
 
-    pub fn set_user_runes_order_status(order_id: Vec<u8>, status: StakeStatus) -> Result<(), String> {
+    pub fn set_user_runes_order_status(order_id: Vec<u8>, update: UpdateUserStakedRunes) -> Result<(), String> {
         let order_id_u84 = vec_to_u84(order_id.clone())?;
         let order = RUNES_ORDERS.with(|m| m.borrow().get(&order_id_u84));
         if order.is_none() {
             Err("Order not found".to_string())
         } else {
             let mut _order = order.unwrap();
-            _order.status = status;
+            match update.status {
+                StakeStatus::Locking => {
+                    if update.lock_txid.is_none() {
+                        return Err("Lock txid is required".to_string());
+                    }
+                    _order.lock_txid = update.lock_txid;
+                }
+                StakeStatus::Unlocked => {
+                    if update.unlock_txid.is_none() {
+                        return Err("Unlock txid is required".to_string());
+                    }
+                    _order.unlock_txid = update.unlock_txid;
+                }
+                _ => {}
+            }
+            _order.status = update.status;
             RUNES_ORDERS.with(|m| {
                 m.borrow_mut().insert(order_id_u84, _order);
             });
@@ -500,8 +509,7 @@ impl TalosService {
         let res = RUNES_ORDERS.with(|m| {
             m.borrow()
                 .iter()
-                .filter(|(_,order)| {
-
+                .filter(|(_, order)| {
                     if !order.status.is_live() {
                         return false;
                     }
