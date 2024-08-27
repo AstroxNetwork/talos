@@ -49,6 +49,8 @@ describe('talos', () => {
 
     const who = await talosActor.whoAmI();
     console.log(who);
+
+    await walletActor.set_talos(Principal.fromText(getCanisterId('talos')!));
   });
   test.skip('register', async () => {
     let userIdentity = Secp256k1KeyIdentity.generate();

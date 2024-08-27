@@ -76,6 +76,18 @@ export const idlFactory = ({ IDL }) => {
     'version' : IDL.Nat,
     'lock_time' : IDL.Nat32,
   });
+  const StakeParams = IDL.Record({
+    'value' : IDL.Nat64,
+    'validator' : IDL.Text,
+    'txid' : IDL.Text,
+    'vout' : IDL.Nat32,
+    'delegator' : IDL.Text,
+    'chain_id' : IDL.Nat16,
+    'stake_amount' : IDL.Nat64,
+    'reveal_fee' : IDL.Nat64,
+    'stake_lock_time' : IDL.Nat32,
+    'wallet_id' : IDL.Text,
+  });
   const UserStakedBTC = IDL.Record({
     'status' : StakeStatus,
     'stake_target' : StakingTarget,
@@ -83,6 +95,7 @@ export const idlFactory = ({ IDL }) => {
     'stake_payload' : StakePayload,
     'stake_amount' : IDL.Nat,
     'btc_address' : IDL.Text,
+    'stake_params' : IDL.Opt(StakeParams),
   });
   const Result_3 = IDL.Variant({
     'Ok' : IDL.Vec(UserStakedBTC),
@@ -239,6 +252,7 @@ export const idlFactory = ({ IDL }) => {
     'get_user_runes_order' : IDL.Func([], [Result_4], ['query']),
     'set_btc_order_status' : IDL.Func([IDL.Text, StakeStatus], [Result], []),
     'transform' : IDL.Func([TransformArgs], [HttpResponse], ['query']),
+    'update_btc_order_stake_params' : IDL.Func([StakeParams], [Result], []),
     'user_register' : IDL.Func([IDL.Text, BtcPubkey], [Result_2], []),
     'whoAmI' : IDL.Func([], [IDL.Opt(TalosUser)], ['query']),
   });

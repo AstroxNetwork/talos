@@ -141,6 +141,20 @@ pub enum StakingTarget {
 }
 
 #[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
+pub struct StakeParams {
+    pub wallet_id: String,
+    pub stake_amount: u64,
+    pub reveal_fee: u64,
+    pub txid: String,
+    pub vout: u32,
+    pub value: u64,
+    pub chain_id: u16,
+    pub delegator: String,
+    pub validator: String,
+    pub stake_lock_time: u32,
+}
+
+#[derive(CandidType, Serialize, Deserialize, Clone, Debug)]
 pub struct UserStakedBTC {
     pub stake_payload: BTCStakePayload,
     pub stake_amount: u128,
@@ -148,6 +162,7 @@ pub struct UserStakedBTC {
     pub btc_address: String,
     pub stake_target: StakingTarget,
     pub create_time: u64,
+    pub stake_params: Option<StakeParams>,
 }
 
 impl Storable for UserStakedBTC {
@@ -159,7 +174,7 @@ impl Storable for UserStakedBTC {
         Decode!(bytes.as_ref(), Self).unwrap()
     }
     const BOUND: Bound = Bound::Bounded {
-        max_size: 1024,
+        max_size: 2048,
         is_fixed_size: false,
     };
 }

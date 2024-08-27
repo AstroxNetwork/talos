@@ -134,6 +134,7 @@ export interface _SERVICE {
     Array<StakingWallet>,
   >,
   'remove_staking_wallet' : ActorMethod<[string], undefined>,
+  'set_talos' : ActorMethod<[Principal], undefined>,
   'update_staking_wallet' : ActorMethod<[StakingWallet], Result_4>,
   'whoAmI' : ActorMethod<[], Principal>,
 }

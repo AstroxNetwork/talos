@@ -162,6 +162,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'remove_staking_wallet' : IDL.Func([IDL.Text], [], []),
+    'set_talos' : IDL.Func([IDL.Principal], [], []),
     'update_staking_wallet' : IDL.Func([StakingWallet], [Result_4], []),
     'whoAmI' : IDL.Func([], [IDL.Principal], []),
   });

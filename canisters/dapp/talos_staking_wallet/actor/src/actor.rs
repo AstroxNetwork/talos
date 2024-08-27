@@ -103,6 +103,13 @@ pub fn update_staking_wallet(wallet: StakingWallet) -> Result<(), String> {
 }
 
 #[cfg(not(feature = "no_candid"))]
+#[update(name = "set_talos", guard = "owner_guard")]
+#[candid_method(update, rename = "set_talos")]
+pub fn set_talos(canister: Principal) {
+    WalletService::set_talos(canister)
+}
+
+#[cfg(not(feature = "no_candid"))]
 #[update(name = "create_core_dao_tx")]
 #[candid_method(update, rename = "create_core_dao_tx")]
 pub async fn create_core_dao_tx(req: CreateCoreDaoTxReq) -> Result<CreateCoreDaoTxRes, String> {

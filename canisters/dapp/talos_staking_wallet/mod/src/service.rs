@@ -11,16 +11,40 @@ use ic_stable_structures::Storable;
 
 use ic_tss::ecdsa::{sign_pre_hash, EcdsaKeyIds};
 use ic_tss::schnorr::{SchnorrAlgorithm, SchnorrKeyIds};
-use talos_types::types::{StakingTarget, StakingWallet, StakingWalletCreateReq};
+use talos_types::types::{StakeParams, StakingTarget, StakingWallet, StakingWalletCreateReq};
 
 use crate::core_dao::{CoreDao, CoreOption};
-use crate::memory::{TXS, WALLETS};
-use crate::types::{CreateCoreDaoTxRes, SignedTx, TxDetail, TxID, TxState, TxType};
+use crate::memory::{BTREES, TXS, WALLETS};
+use crate::types::{
+    BtreeKey, BtreeValue, CreateCoreDaoTxRes, SignedTx, TxDetail, TxID, TxState, TxType,
+};
 use crate::utils::{get_script_from_address, vec_to_u832, AddressInfo};
 
 pub struct WalletService {}
 
 impl WalletService {
+    pub fn set_talos(canister: Principal) {
+        BTREES.with(|b| {
+            b.borrow_mut().insert(
+                BtreeKey("talos".to_string()),
+                BtreeValue {
+                    key: "talos".to_string(),
+                    value: canister.as_slice().to_vec(),
+                },
+            )
+        });
+    }
+
+    pub fn get_talos() -> Option<Principal> {
+        let res = BTREES.with(|b| b.borrow().get(&BtreeKey("talos".to_string())));
+        match res {
+            Some(v) => {
+                let principal = Principal::from_slice(v.value.as_slice());
+                Some(principal)
+            }
+            None => None,
+        }
+    }
     pub async fn create_staking_wallet(
         req: StakingWalletCreateReq,
     ) -> Result<StakingWallet, String> {
@@ -115,6 +139,10 @@ impl WalletService {
         let wallet = Self::get_staking_wallet(wallet_id.clone())
             .map_or_else(|| Err("Wallet not found".to_string()), |v| Ok(v))?;
 
+        if Self::get_talos().is_none() {
+            return Err("Talos not set".to_string());
+        }
+
         let AddressInfo {
             network,
             script_buf,
@@ -124,8 +152,8 @@ impl WalletService {
         let option = CoreOption {
             version: 1,
             chain_id,
-            delegator: hex::decode(delegator).map_err(|e| e.to_string())?,
-            validator: hex::decode(validator).map_err(|e| e.to_string())?,
+            delegator: hex::decode(delegator.clone()).map_err(|e| e.to_string())?,
+            validator: hex::decode(validator.clone()).map_err(|e| e.to_string())?,
             fee: 0,
             pub_key: wallet.pub_key_hex.clone(),
             lock_time: stake_lock_time.clone(),
@@ -201,6 +229,24 @@ impl WalletService {
             t.borrow_mut()
                 .insert(tx_detail_unlock.get_txid(), tx_detail_unlock.clone())
         });
+
+        ic_cdk::api::call::notify(
+            Self::get_talos().unwrap(),
+            "update_btc_order_stake_params",
+            (StakeParams {
+                wallet_id: wallet_id.clone(),
+                stake_amount: stake_amount.clone(),
+                reveal_fee: reveal_fee.clone(),
+                txid: txid.clone(),
+                vout: vout.clone(),
+                value: value.clone(),
+                chain_id: chain_id.clone(),
+                delegator: delegator.clone(),
+                validator: validator.clone(),
+                stake_lock_time: stake_lock_time.clone(),
+            },),
+        )
+        .map_err(|_| "Can not notify talos update_btc_order_stake_params".to_string())?;
 
         Ok(CreateCoreDaoTxRes {
             signed_tx_commit: res,

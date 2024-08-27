@@ -67,6 +67,18 @@ export type Result_9 = { 'Ok' : [] | [Array<[Principal, string]>] } |
   { 'Err' : string };
 export type RunesStatus = { 'Inactive' : null } |
   { 'Active' : null };
+export interface StakeParams {
+  'value' : bigint,
+  'validator' : string,
+  'txid' : string,
+  'vout' : number,
+  'delegator' : string,
+  'chain_id' : number,
+  'stake_amount' : bigint,
+  'reveal_fee' : bigint,
+  'stake_lock_time' : number,
+  'wallet_id' : string,
+}
 export interface StakePayload {
   'id' : Array<number>,
   'protocol' : bigint,
@@ -125,6 +137,7 @@ export interface UserStakedBTC {
   'stake_payload' : StakePayload,
   'stake_amount' : bigint,
   'btc_address' : string,
+  'stake_params' : [] | [StakeParams],
 }
 export interface UserStakedRunes {
   'status' : StakeStatus,
@@ -209,6 +222,7 @@ export interface _SERVICE {
   'get_user_runes_order' : ActorMethod<[], Result_4>,
   'set_btc_order_status' : ActorMethod<[string, StakeStatus], Result>,
   'transform' : ActorMethod<[TransformArgs], HttpResponse>,
+  'update_btc_order_stake_params' : ActorMethod<[StakeParams], Result>,
   'user_register' : ActorMethod<[string, BtcPubkey], Result_2>,
   'whoAmI' : ActorMethod<[], [] | [TalosUser]>,
 }

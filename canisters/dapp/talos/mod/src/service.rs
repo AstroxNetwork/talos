@@ -349,6 +349,7 @@ impl TalosService {
             btc_address: user.btc_address.clone(),
             stake_target: staking_target.clone(),
             create_time: ic_cdk::api::time(),
+            stake_params: None,
         };
         BTC_ORDERS.with(|m| {
             m.borrow_mut().insert(id.clone(), btc_order);
@@ -397,6 +398,18 @@ impl TalosService {
         } else {
             Ok(order.unwrap())
         }
+    }
+
+    pub fn update_btc_order_by_id(
+        order_id: String,
+        btc_order: UserStakedBTC,
+    ) -> Result<(), String> {
+        let order_id_bytes = hex::decode(order_id.clone()).map_err(|e| e.to_string())?;
+        let order_id_u84 = vec_to_u84(order_id_bytes)?;
+        BTC_ORDERS.with(|m| {
+            m.borrow_mut().insert(order_id_u84, btc_order);
+        });
+        Ok(())
     }
 
     pub fn get_user_btc_orders(caller: &Principal) -> Result<Vec<UserStakedBTC>, String> {
