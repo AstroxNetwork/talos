@@ -323,7 +323,8 @@ mod test {
     use bitcoin::consensus::Decodable;
     use bitcoin::key::{Secp256k1, XOnlyPublicKey};
     use bitcoin::{
-        opcodes, script, Address, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, Witness,
+        opcodes, script, secp256k1, Address, OutPoint, ScriptBuf, Sequence, Transaction, TxIn,
+        Witness,
     };
     use std::io::Cursor;
     use std::str::FromStr;
