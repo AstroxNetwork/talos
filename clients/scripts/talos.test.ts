@@ -89,6 +89,8 @@ describe('talos', () => {
       min_stake: BigInt(100),
       rune_name: 'WOO•HOO•KOO',
       rune_id: '2584503:2',
+      rune_divisibility: 0,
+      rune_symbol: '$',
     });
     console.log({ res });
 

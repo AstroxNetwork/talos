@@ -14,7 +14,7 @@ import { Prices } from '@wizz-btc/api';
 import FeeRateSelector from '../../component/FeeRateSelector.tsx';
 import RainbowConnectButton from '../../component/RainbowConnectButton.tsx';
 import { DUST_AMOUNT, getAddressType, Output, toPsbt, TxOk, UTXO } from '@wizz-btc/wallet';
-import { ExclamationCircleOutlined } from '@ant-design/icons';
+import { CloseOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { STAKING_DURATIONS } from './consts.ts';
 import { Psbt } from 'bitcoinjs-lib';
@@ -81,7 +81,7 @@ export default function CoreStaking({ balance, prices }: Props) {
       return;
     }
     const commitFee = Math.ceil(feeRate * (10.5 + 68 + 43 + 83 + 9));
-    const revealFee = Math.ceil(feeRate * (10.5 + 66 + 41.25));
+    const revealFee = Math.ceil(feeRate * (10.5 + 76.5 + 43));
     const calcFee = (inputNum: number, hasChange: boolean = false) => {
       const changeFee = hasChange ? 43 : 0;
       return Math.ceil(feeRate * (10.5 + 57.5 * inputNum + 31 + changeFee));
@@ -141,7 +141,7 @@ export default function CoreStaking({ balance, prices }: Props) {
       return;
     }
     const [addressType, network] = getAddressType(balance.address);
-    setTxOk({
+    const tx = {
       address: balance.address,
       addressType,
       fee,
@@ -155,7 +155,9 @@ export default function CoreStaking({ balance, prices }: Props) {
       commitAmount,
       stakeAmount,
       totalFee: fee + commitFee,
-    });
+    };
+    console.log(tx);
+    setTxOk(tx);
   }, [account?.address, balance.address, balance.principal, balance.publicKey, balance.regularUTXOs, balance.regularValue, feeRate, inputSats]);
   const [withdrawTs, setWithdrawTs] = useState<number>(Math.ceil(Date.now() / 1000 + duration));
   useEffect(() => {
@@ -235,7 +237,7 @@ export default function CoreStaking({ balance, prices }: Props) {
       const tx = txOk!;
       console.log(tx);
       const amount = BigInt(tx.stakeAmount);
-      const lockTime = withdrawTs;
+      const lockTime = withdrawTs - 60 * 100;
       const createRes = await talosActor.create_btc_order({
         amount: amount,
         target: {
@@ -294,7 +296,7 @@ export default function CoreStaking({ balance, prices }: Props) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          'btcTxId': txid1,
+          'btcTxId': txid2,
           'script': Buffer.from(txRes.Ok.redeem_script).toString('hex'),
         }),
       });
@@ -489,7 +491,7 @@ export default function CoreStaking({ balance, prices }: Props) {
               return <>
                 <div className={'flex items-center justify-between'}>
                   <div className={'flex items-center'}>
-                    <div className={'font-bold'}>{stakeAmount} BTC</div>
+                    <div className={'font-bold'}>{stakeAmount} <span className={'text-soft'}>BTC</span></div>
                     <Button size={'small'} type={isUnlocked ? 'primary' : 'dashed'}
                             className={`text-xs rounded-3xl ml-2 ${isUnlocked ? 'bg-green-500' : 'text-primary'}`}
                             style={{
@@ -538,12 +540,18 @@ export default function CoreStaking({ balance, prices }: Props) {
           background: 'transparent',
         },
       }}
-      width={360}
       centered={true} destroyOnClose={true} open={showHistoryModal} closeIcon={null} footer={null}
     >
       <Spin spinning={fullLoading}>
         <div className={'talos-bg-card rounded-[24px] p-2 mt-2'}>
-          <div className={'text-center'}>Staking History</div>
+          <div className={'flex items-center px-2'}>
+            <div className={'text-lg font-bold flex-1'}>Staking History (<span
+              className={'text-primary'}>{userOrders.length.toLocaleString('en-US')}</span>)
+            </div>
+            <Button shape={'circle'} type={'primary'} onClick={() => {
+              setShowHistoryModal(false);
+            }}><CloseOutlined /></Button>
+          </div>
           <div className={'talos-bg-surface rounded-[16px] p-2 mt-2'}>
             {userOrders.map((order, index) => {
               const time = dayjs(Math.ceil(new BigNumber(order.create_time.toString(10)).div(1e6).toNumber())).format('lll');
@@ -562,7 +570,7 @@ export default function CoreStaking({ balance, prices }: Props) {
                 <div>
                   <div className={'flex items-center justify-between'}>
                     <div className={'flex items-center'}>
-                      <div className={'font-bold'}>{stakeAmount} BTC</div>
+                      <div className={'font-bold'}>{stakeAmount} <span className={'text-soft'}>BTC</span></div>
                       <Button size={'small'} type={isUnlocked ? 'primary' : 'dashed'}
                               className={`text-xs rounded-3xl ml-2 ${isUnlocked ? 'bg-green-500' : 'text-primary'}`}
                               style={{

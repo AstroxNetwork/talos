@@ -5,11 +5,15 @@ import ThemeButton from '../../component/ThemeButton.tsx';
 import TokenIcons from '../../component/TokenIcons.tsx';
 import { DiscordOutlined, GithubOutlined, XOutlined } from '@ant-design/icons';
 import { Button } from 'antd';
+import Logo from '../../component/Logo.tsx';
+import useBreakpoint from 'antd/es/grid/hooks/useBreakpoint';
 
 export default function Page() {
+  const breakpoint = useBreakpoint(true);
   return <div className={'talos-page talos-bg relative'}>
-    <div className={'fixed top-0 left-0 right-0 p-4 flex items-center justify-between z-10'}>
-      <div className={'text-lg font-bold'}>Talos</div>
+    <div
+      className={`fixed top-0 left-0 right-0 ${breakpoint.xs ? 'p-4' : 'px-8 py-4'} flex items-center justify-between z-10`}>
+      <Logo width={28} height={28} />
       <div className={'flex items-center gap-2'}>
         <ThemeButton />
         <ConnectButton />
@@ -23,7 +27,10 @@ export default function Page() {
       <div className={'talos-footer'}>
         <div className={'talos-footer-content'}>
           <div>
-            <div className={'font-bold text-xl'}>Talos</div>
+            <div className={'flex items-center gap-2'}>
+              <Logo width={20} height={20} />
+              <div className={'font-bold text-xl'}>Talos</div>
+            </div>
             <div className={'flex items-center gap-2'}>
               {
                 [<XOutlined />,

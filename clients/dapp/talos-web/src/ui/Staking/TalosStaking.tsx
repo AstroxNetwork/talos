@@ -4,7 +4,7 @@ import { Button, Divider, Input, InputNumber, Modal, Spin, Tooltip } from 'antd'
 import BigNumber from 'bignumber.js';
 import FeeRateSelector from '../../component/FeeRateSelector.tsx';
 import { OracleOrder, TalosRunes, UserStakedRunes } from '../../canister/talos/talos';
-import { CaretDownOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { CaretDownOutlined, CloseOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import { STAKING_BLOCKS } from './consts.ts';
 import IconRunes from '../../assets/icons/runes.svg';
 import { RuneValueWithUTXOs } from '@wizz-btc/provider';
@@ -432,7 +432,7 @@ export default function TalosStaking({ balance, prices }: Props) {
                 <div className={'flex items-center justify-between'}>
                   <div className={'flex items-center'}>
                     <div className={'font-bold'}>{formatNumberString(stakeAmount)} {order.rune_symbol} <span
-                      className={'text-xs text-soft'}>{order.rune_name}</span></div>
+                      className={'text-[10px] text-soft'}>{order.rune_name}</span></div>
                     <Button size={'small'} type={isUnlocked ? 'primary' : 'dashed'}
                             className={`text-xs rounded-3xl ml-2 ${isUnlocked ? 'bg-green-500' : 'text-primary'}`}
                             style={{
@@ -480,7 +480,7 @@ export default function TalosStaking({ balance, prices }: Props) {
       centered={true} destroyOnClose={true} open={showModal} closeIcon={null} footer={null} onCancel={() => {
       setShowModal(false);
     }}>
-      <div className={'text-xl font-bold'}>Select Staking Rune</div>
+      <div className={'text-lg font-bold'}>Select Staking Rune</div>
       <Input
         className={'mt-4'}
         placeholder={'Search ...'} value={keywords} allowClear
@@ -525,12 +525,18 @@ export default function TalosStaking({ balance, prices }: Props) {
           background: 'transparent',
         },
       }}
-      width={360}
       centered={true} destroyOnClose={true} open={showHistoryModal} closeIcon={null} footer={null}
     >
       <Spin spinning={fullLoading}>
         <div className={'talos-bg-card rounded-[24px] p-2 mt-2'}>
-          <div className={'text-center'}>Staking History</div>
+          <div className={'flex items-center px-2'}>
+            <div className={'text-lg font-bold flex-1'}>Staking History (<span
+              className={'text-primary'}>{userOrders.length.toLocaleString('en-US')}</span>)
+            </div>
+            <Button shape={'circle'} type={'primary'} onClick={() => {
+              setShowHistoryModal(false);
+            }}><CloseOutlined /></Button>
+          </div>
           <div className={'talos-bg-surface rounded-[16px] p-2 mt-2'}>
             {userOrders.map((order, index) => {
               const time = dayjs(Math.ceil(new BigNumber(order.create_time.toString(10)).div(1e6).toNumber())).format('lll');
@@ -545,7 +551,7 @@ export default function TalosStaking({ balance, prices }: Props) {
                   <div className={'flex items-center justify-between'}>
                     <div className={'flex items-center'}>
                       <div className={'font-bold'}>{formatNumberString(stakeAmount)} {order.rune_symbol} <span
-                        className={'text-xs text-soft'}>{order.rune_name}</span></div>
+                        className={'text-[10px] text-soft'}>{order.rune_name}</span></div>
                       <Button size={'small'} type={isUnlocked ? 'primary' : 'dashed'}
                               className={`text-xs rounded-3xl ml-2 ${isUnlocked ? 'bg-green-500' : 'text-primary'}`}
                               style={{
