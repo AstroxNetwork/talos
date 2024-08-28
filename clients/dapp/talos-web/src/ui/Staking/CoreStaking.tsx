@@ -237,7 +237,7 @@ export default function CoreStaking({ balance, prices }: Props) {
       const tx = txOk!;
       console.log(tx);
       const amount = BigInt(tx.stakeAmount);
-      const lockTime = withdrawTs - 60 * 100;
+      const lockTime = withdrawTs;
       const createRes = await talosActor.create_btc_order({
         amount: amount,
         target: {
