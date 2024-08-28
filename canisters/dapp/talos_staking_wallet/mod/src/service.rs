@@ -181,8 +181,8 @@ impl WalletService {
             wallet.bytes,
             export_psbt,
         )
-            .await
-            .map_err(|e| e.to_string())?;
+        .await
+        .map_err(|e| e.to_string())?;
 
         let tx_detail = TxDetail {
             tx_type: TxType::Lock,
@@ -248,7 +248,7 @@ impl WalletService {
                 stake_lock_time: stake_lock_time.clone(),
             },),
         )
-            .map_err(|_| "Can not notify talos update_btc_order_stake_params".to_string())?;
+        .map_err(|_| "Can not notify talos update_btc_order_stake_params".to_string())?;
 
         Ok(CreateCoreDaoTxRes {
             signed_tx_commit: res,
@@ -298,7 +298,7 @@ impl WalletService {
             stake_lock_time.clone(),
             stake_amount.clone(),
             value.clone() - reveal_fee,
-            wallet.stake_address.clone(),
+            wallet.user_btc_address.clone(),
         )?;
         let res_unlock = sign_segwit0_tx_unlock(
             psbt_unlock,
@@ -307,8 +307,8 @@ impl WalletService {
             wallet.bytes,
             export_psbt,
         )
-            .await
-            .map_err(|e| e.to_string())?;
+        .await
+        .map_err(|e| e.to_string())?;
 
         let tx_detail_unlock = TxDetail {
             tx_type: TxType::Withdraw,
@@ -393,7 +393,7 @@ pub async fn get_p2wsh_address_from_tss(
         bytes.to_vec(),
         EcdsaKeyIds::from_str(&key_string),
     )
-        .await?;
+    .await?;
     let pubkey_hex = hex::decode(pubkey.public_key_hex).map_err(|e| e.to_string())?;
     assert_eq!(pubkey_hex.len(), 33);
     let mut pub_key_hex = [0u8; 33]; //should be 33 bytes length
@@ -416,7 +416,7 @@ pub async fn get_p2tr_address_from_tss(
         bytes.to_vec(),
         SchnorrKeyIds::from_str(&key_string),
     )
-        .await?;
+    .await?;
     let pubkey_hex = hex::decode(pubkey.public_key_hex).map_err(|e| e.to_string())?;
     assert_eq!(pubkey_hex.len(), 33);
     let mut pub_key_hex = [0u8; 33]; //should be 33 bytes length
@@ -443,7 +443,7 @@ pub async fn sign_segwit0_tx(
     let pubkey = PublicKey::from_slice(
         &hex::decode(pub_key_hex).map_err(|_| "pubkey is not correct".to_string())?,
     )
-        .map_err(|v| v.to_string())?;
+    .map_err(|v| v.to_string())?;
 
     for (i, input) in psbt_to_sign.inputs.iter_mut().enumerate() {
         if input.witness_utxo.is_none() {
@@ -464,7 +464,7 @@ pub async fn sign_segwit0_tx(
                         key_bytes.to_vec(),
                         EcdsaKeyIds::from_str(&key_string),
                     )
-                        .await
+                    .await
                     {
                         Ok(r) => signature = Some(r.signature_hex),
                         Err(_) => {
@@ -480,12 +480,12 @@ pub async fn sign_segwit0_tx(
 
                         let ecdsa_sig = secp256k1::ecdsa::Signature::from_compact(sig.as_slice())
                             .map_err(|e| {
-                                format!(
-                                    "Failed to parse compact signature {:?}, reason: {:?}",
-                                    signature.clone().unwrap(),
-                                    e.to_string()
-                                )
-                            })?;
+                            format!(
+                                "Failed to parse compact signature {:?}, reason: {:?}",
+                                signature.clone().unwrap(),
+                                e.to_string()
+                            )
+                        })?;
 
                         let signature = Signature {
                             sig: ecdsa_sig,
@@ -544,7 +544,7 @@ pub async fn sign_segwit0_tx_unlock(
     let pubkey = PublicKey::from_slice(
         &hex::decode(pub_key_hex).map_err(|_| "pubkey is not correct".to_string())?,
     )
-        .map_err(|v| v.to_string())?;
+    .map_err(|v| v.to_string())?;
 
     for (i, input) in psbt_to_sign.inputs.iter_mut().enumerate() {
         if input.witness_utxo.is_none() {
@@ -563,7 +563,7 @@ pub async fn sign_segwit0_tx_unlock(
                     key_bytes.to_vec(),
                     EcdsaKeyIds::from_str(&key_string),
                 )
-                    .await
+                .await
                 {
                     Ok(r) => signature = Some(r.signature_hex),
                     Err(_) => {
@@ -663,7 +663,7 @@ mod test {
                 .unwrap()
                 .as_slice(),
         )
-            .unwrap();
+        .unwrap();
         let wpubkey_hash = pubkey.wpubkey_hash().unwrap();
 
         let script = script::Builder::new()
@@ -699,14 +699,14 @@ mod test {
         } = get_script_from_address(
             "tb1pv8cz8vvj2s95pdzeax4x9tkuawr5um49n9er6gd2wf6wthwrh6ysqnkcq9".to_string(),
         )
-            .unwrap();
+        .unwrap();
         // let d = r#"{"txid":"f63fb586347d1a90324a4c7655c833adf021b2db6f20e4f1740abda0576b3216","vout":0,"index":0,"value":1798}""#;
         let txin = TxIn {
             previous_output: bitcoin::OutPoint {
                 txid: bitcoin::Txid::from_str(
                     "d0c0580bf3d484215d6f346f2f439646d98c8538f91011fc15c4c387b96fdeb6",
                 )
-                    .unwrap(),
+                .unwrap(),
                 vout: 0,
             },
             script_sig: ScriptBuf::new(),
@@ -987,7 +987,7 @@ mod test {
         let pubkey = PublicKey::from_slice(
             &hex::decode(pub_key_hex).map_err(|_| "pubkey is not correct".to_string())?,
         )
-            .map_err(|v| v.to_string())?;
+        .map_err(|v| v.to_string())?;
 
         for (i, input) in psbt_to_sign.inputs.iter_mut().enumerate() {
             if input.witness_utxo.is_none() {
